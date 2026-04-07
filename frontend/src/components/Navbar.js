@@ -28,6 +28,11 @@ export default function Navbar() {
           {user && (
             <Link to="/orders" className="nav-link" onClick={() => setMenuOpen(false)}>Mis Pedidos</Link>
           )}
+           {user?.role === 'admin' && (
+            <Link to="/admin" className="nav-link nav-link-admin" onClick={() => setMenuOpen(false)}>
+              👑 Admin
+            </Link>
+          )}
         </div>
 
         <div className="navbar-actions">

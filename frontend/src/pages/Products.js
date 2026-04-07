@@ -3,7 +3,7 @@ import { getProducts } from '../api';
 import ProductCard from '../components/ProductCard';
 import './Products.css';
 
-const CATEGORIES = ['all', 'Ropa', 'Tecnología', 'Accesorios', 'Calzado', 'Libros', 'Hogar'];
+const CATEGORIES = ['all','Promociones', 'Audio', 'Cargadores', 'Baterías', 'Cables', 'Bocinas', 'Smartwatch', 'Dispositivo Móvil', 'Línea Blanca'];
 
 export default function Products() {
   const [products, setProducts] = useState([]);
