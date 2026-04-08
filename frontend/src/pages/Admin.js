@@ -156,15 +156,7 @@ export default function Admin() {
     }
   };
 
-  const handleSeed = async () => {
-    try {
-      await API.post('/products/seed/demo');
-      toast.success('🎉 Productos demo cargados');
-      loadProducts();
-    } catch {
-      toast.error('Error al cargar demo');
-    }
-  };
+
 
   const formatPrice = (p) =>
     new Intl.NumberFormat('es-CO', {
@@ -190,7 +182,6 @@ export default function Admin() {
           <p className="admin-subtitle">Bienvenido, {user.name} 👑</p>
         </div>
         <div className="admin-header-actions">
-          <button className="btn btn-secondary" onClick={handleSeed}>📦 Cargar demo</button>
           <button className="btn btn-primary" onClick={openCreate}>+ Nuevo producto</button>
         </div>
       </div>

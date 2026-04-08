@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts, seedProducts } from '../api';
+import { getProducts } from '../api';
 import ProductCard from '../components/ProductCard';
-import toast from 'react-hot-toast';
 import './Home.css';
 
 export default function Home() {
@@ -15,17 +14,6 @@ export default function Home() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
-
-  const handleSeed = async () => {
-    try {
-      await seedProducts();
-      toast.success('🎉 Productos de demo cargados');
-      const res = await getProducts({ featured: true });
-      setFeatured(res.data);
-    } catch {
-      toast.error('Error al cargar productos demo');
-    }
-  };
 
   return (
     <div className="home">
@@ -45,7 +33,7 @@ export default function Home() {
             <Link to="/products" className="btn btn-primary hero-btn">
               Ver Productos 🛍️
             </Link>
-            <a
+            
               href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573001234567'}`}
               target="_blank"
               rel="noreferrer"
@@ -99,12 +87,7 @@ export default function Home() {
         {loading ? (
           <div className="loader"><div className="spinner" /></div>
         ) : featured.length === 0 ? (
-          <div className="empty-state">
-            <p>¿Primera vez? Carga los productos de demo para empezar 🎉</p>
-            <button className="btn btn-primary" onClick={handleSeed} style={{ marginTop: 16 }}>
-              Cargar productos demo
-            </button>
-          </div>
+          <p className="text-center">No hay productos destacados por el momento.</p>
         ) : (
           <div className="products-grid">
             {featured.map(p => <ProductCard key={p._id} product={p} />)}
@@ -118,7 +101,7 @@ export default function Home() {
           <div className="cta-icon">💬</div>
           <h2>¿Tienes alguna pregunta?</h2>
           <p>Escríbenos directamente por WhatsApp y te respondemos al instante</p>
-          <a
+          
             href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573001234567'}?text=Hola! Quiero información sobre sus productos.`}
             target="_blank"
             rel="noreferrer"
