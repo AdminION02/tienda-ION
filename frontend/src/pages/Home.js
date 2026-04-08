@@ -33,7 +33,7 @@ export default function Home() {
             <Link to="/products" className="btn btn-primary hero-btn">
               Ver Productos 🛍️
             </Link>
-            
+            <a
               href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573001234567'}`}
               target="_blank"
               rel="noreferrer"
@@ -101,7 +101,7 @@ export default function Home() {
           <div className="cta-icon">💬</div>
           <h2>¿Tienes alguna pregunta?</h2>
           <p>Escríbenos directamente por WhatsApp y te respondemos al instante</p>
-          
+          <a
             href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573001234567'}?text=Hola! Quiero información sobre sus productos.`}
             target="_blank"
             rel="noreferrer"

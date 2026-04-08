@@ -14,7 +14,7 @@ const EMPTY_FORM = {
   image: '',
   stock: '',
   featured: false,
-  imageFile: null, // ✅ incluido aquí directamente
+  imageFile: null,
 };
 
 const CATEGORIES = [
@@ -32,9 +32,9 @@ export default function Admin() {
   const [deleting, setDeleting] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM); // ✅ declarado una sola vez
+  const [form, setForm] = useState(EMPTY_FORM);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState('products'); // 'products' | 'orders'
+  // FIX 1: eliminado `tab` y `setTab` que no se usaban en ningún lado
 
   // Proteger ruta
   useEffect(() => {
@@ -119,20 +119,46 @@ export default function Admin() {
     }
     setSaving(true);
     try {
-      const data = {
-        ...form,
-        price: Number(form.price),
-        stock: Number(form.stock) || 0,
-      };
-      delete data.imageFile; // no enviar el File al backend directamente
+      // FIX 2: si el usuario subió un archivo, enviarlo como FormData para que
+      // el backend lo reciba correctamente. Si solo hay URL, enviar JSON normal.
+      let response;
+      if (form.imageFile) {
+        const formData = new FormData();
+        formData.append('name', form.name);
+        formData.append('description', form.description);
+        formData.append('price', Number(form.price));
+        formData.append('category', form.category);
+        formData.append('stock', Number(form.stock) || 0);
+        formData.append('featured', form.featured);
+        formData.append('image', form.imageFile);
 
-      if (editing) {
-        await API.put(`/products/${editing}`, data);
-        toast.success('✅ Producto actualizado');
+        if (editing) {
+          response = await API.put(`/products/${editing}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        } else {
+          response = await API.post('/products', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+        }
       } else {
-        await API.post('/products', data);
-        toast.success('✅ Producto creado');
+        const data = {
+          name: form.name,
+          description: form.description,
+          price: Number(form.price),
+          category: form.category,
+          image: form.image,
+          stock: Number(form.stock) || 0,
+          featured: form.featured,
+        };
+        if (editing) {
+          response = await API.put(`/products/${editing}`, data);
+        } else {
+          response = await API.post('/products', data);
+        }
       }
+
+      toast.success(editing ? '✅ Producto actualizado' : '✅ Producto creado');
       closeForm();
       loadProducts();
     } catch (err) {
@@ -155,8 +181,6 @@ export default function Admin() {
       setDeleting(null);
     }
   };
-
-
 
   const formatPrice = (p) =>
     new Intl.NumberFormat('es-CO', {
@@ -289,7 +313,7 @@ export default function Admin() {
                   type="url"
                   className="form-input"
                   placeholder="https://..."
-                  value={form.imageFile ? '' : form.image} // ✅ limpia si hay archivo
+                  value={form.imageFile ? '' : form.image}
                   onChange={handleUrlChange}
                 />
                 <input
@@ -395,8 +419,9 @@ export default function Admin() {
               {filtered.map(product => (
                 <tr key={product._id} className={product.stock === 0 ? 'out-of-stock' : ''}>
                   <td>
+                    {/* FIX 3: via.placeholder.com está deprecado, reemplazado por placehold.co */}
                     <img
-                      src={product.image || 'https://via.placeholder.com/60x60?text=Sin+foto'}
+                      src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
                       alt={product.name}
                       className="table-img"
                     />
