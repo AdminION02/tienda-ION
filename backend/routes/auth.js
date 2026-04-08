@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const pool = require('../db');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -18,19 +19,29 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Todos los campos son obligatorios' });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    // Verificar si el email ya existe
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
       return res.status(400).json({ message: 'Este email ya está registrado' });
     }
 
-    const user = await User.create({ name, email, password });
+    // Encriptar contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear usuario
+    const result = await pool.query(
+      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, role',
+      [name, email, hashedPassword]
+    );
+
+    const user = result.rows[0];
 
     res.status(201).json({
-      _id: user._id,
+      _id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id)
+      token: generateToken(user.id)
     });
   } catch (error) {
     res.status(500).json({ message: 'Error al registrar usuario', error: error.message });
@@ -46,17 +57,26 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Email y contraseña son obligatorios' });
     }
 
-    const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) {
+    // Buscar usuario
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ message: 'Email o contraseña incorrectos' });
+    }
+
+    // Verificar contraseña
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
       return res.status(401).json({ message: 'Email o contraseña incorrectos' });
     }
 
     res.json({
-      _id: user._id,
+      _id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user._id)
+      token: generateToken(user.id)
     });
   } catch (error) {
     res.status(500).json({ message: 'Error al iniciar sesión', error: error.message });

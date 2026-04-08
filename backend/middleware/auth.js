@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const pool = require('../db');
 
 const protect = async (req, res, next) => {
   try {
@@ -14,12 +14,17 @@ const protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
 
-    if (!req.user) {
+    const result = await pool.query(
+      'SELECT id, name, email, role FROM users WHERE id = $1',
+      [decoded.id]
+    );
+
+    if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Usuario no encontrado.' });
     }
 
+    req.user = result.rows[0];
     next();
   } catch (error) {
     res.status(401).json({ message: 'Token inválido o expirado.' });

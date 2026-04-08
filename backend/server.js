@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 
 const authRoutes = require('./routes/auth');
@@ -26,16 +25,19 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Servidor funcionando correctamente' });
 });
 
-// Conexión MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('✅ Conectado a MongoDB');
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-    });
-  })
-  .catch(err => {
-    console.error('❌ Error conectando MongoDB:', err.message);
-    process.exit(1);
-  });
+// Conexión Supabase
+const pool = require('./db');
+
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('❌ Error conectando a Supabase:', err);
+  } else {
+    console.log('✅ Conectado a Supabase:', res.rows[0]);
+  }
+});
+
+// Iniciar servidor
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+});
