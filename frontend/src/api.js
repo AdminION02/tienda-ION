@@ -14,16 +14,16 @@ API.interceptors.request.use((config) => {
 });
 
 // Auth
-export const register = (data) => API.post('/auth/register', data);
-export const login = (data) => API.post('/auth/login', data);
-export const getMe = () => API.get('/auth/me');
+export const register = (data) => API.post('/api/auth/register', data);
+export const login = (data) => API.post('/api/auth/login', data);
+export const getMe = () => API.get('/api/auth/me');
 
 // Products
-export const getProducts = (params) => API.get('/products', { params });
-export const getProduct = (id) => API.get(`/products/${id}`);
+export const getProducts = (params) => API.get('/api/products', { params });
+export const getProduct = (id) => API.get(`/api/products/${id}`);
 
 // Orders
-export const createOrder = (data) => API.post('/orders', data);
-export const getMyOrders = () => API.get('/orders/my');
+export const createOrder = (data) => API.post('/api/orders', data);
+export const getMyOrders = () => API.get('/api/orders/my');
 
 export default API;
