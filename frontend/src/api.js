@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'https://tienda-ion.onrender.com/api'
+  baseURL: process.env.REACT_APP_API_URL || 'https://tienda-ion.onrender.com'
 });
 
 // Interceptor para agregar token en cada petición
