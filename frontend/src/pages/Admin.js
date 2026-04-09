@@ -149,9 +149,9 @@ export default function Admin() {
           <p className="admin-subtitle">Bienvenido, {user.name} 👑</p>
         </div>
         <div className="admin-header-actions">
-          <button className="btn btn-secondary" onClick={() => navigate('/admin/orders')}>
-            📋 Ver pedidos
-          </button>
+          <button className="btn btn-secondary" onClick={() => navigate('/admin/OrdersUdapte')}>
+  📋 Ver pedidos
+  </button>
           <button className="btn btn-primary" onClick={openCreate}>
             + Nuevo producto
           </button>

@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Orders from './pages/Orders';
 import Admin from './pages/Admin';
+import OrdersUdapte from './pages/OrdersUdapte';
 import './App.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/orders" element={<Orders />} />
                  <Route path="/admin" element={<Admin />} />
+                 <Route path="/admin/OrdersUdapte" element={<OrdersUdapte />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </main>
