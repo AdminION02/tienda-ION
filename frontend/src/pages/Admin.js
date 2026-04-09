@@ -153,7 +153,7 @@ export default function Admin() {
   📋 Ver pedidos
   </button>
           <button className="btn btn-primary" onClick={openCreate}>
-            + Nuevo producto
+            Nuevo producto
           </button>
         </div>
       </div>
