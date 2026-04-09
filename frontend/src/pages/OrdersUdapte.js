@@ -120,7 +120,6 @@ export default function OrdersUdapte() {
 
       <div className="orders-header">
         <div>
-          <button className="back-btn" onClick={() => navigate('/admin')}>← Volver al panel</button>
           <h1>Gestión de <span className="text-accent">Pedidos</span></h1>
           <p className="orders-subtitle">{filtered.length} pedido{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}</p>
         </div>
