@@ -26,15 +26,14 @@ export default function Admin() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [search, setSearch] = useState('');
-  // FIX 1: eliminado `tab` y `setTab` que no se usaban en ningún lado
+  const [products, setProducts]   = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [saving, setSaving]       = useState(false);
+  const [deleting, setDeleting]   = useState(null);
+  const [showForm, setShowForm]   = useState(false);
+  const [editing, setEditing]     = useState(null);
+  const [form, setForm]           = useState(EMPTY_FORM);
+  const [search, setSearch]       = useState('');
 
   // Proteger ruta
   useEffect(() => {
@@ -56,23 +55,17 @@ export default function Admin() {
 
   useEffect(() => { loadProducts(); }, []);
 
-  // Form handlers
+  // Handlers formulario
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // URL → elimina archivo
-  const handleUrlChange = (e) => {
-    setForm(prev => ({
-      ...prev,
-      image: e.target.value,
-      imageFile: null,
-    }));
+  const handleUrlChange = e => {
+    setForm(prev => ({ ...prev, image: e.target.value, imageFile: null }));
   };
 
-  // Archivo → genera preview y elimina URL escrita
-  const handleImageUpload = (e) => {
+  const handleImageUpload = e => {
     const file = e.target.files[0];
     if (file) {
       setForm(prev => ({
@@ -87,19 +80,20 @@ export default function Admin() {
     setEditing(null);
     setForm(EMPTY_FORM);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const openEdit = (product) => {
-    setEditing(product._id);
+  const openEdit = product => {
+    setEditing(product.id);
     setForm({
-      name: product.name,
+      name:        product.name,
       description: product.description,
-      price: product.price,
-      category: product.category,
-      image: product.image || '',
-      stock: product.stock,
-      featured: product.featured || false,
-      imageFile: null,
+      price:       product.price,
+      category:    product.category,
+      image:       product.image || '',
+      stock:       product.stock,
+      featured:    product.featured || false,
+      imageFile:   null,
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -111,7 +105,7 @@ export default function Admin() {
     setForm(EMPTY_FORM);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (!form.name || !form.price || !form.category) {
       toast.error('Nombre, precio y categoría son obligatorios');
@@ -119,43 +113,31 @@ export default function Admin() {
     }
     setSaving(true);
     try {
-      // FIX 2: si el usuario subió un archivo, enviarlo como FormData para que
-      // el backend lo reciba correctamente. Si solo hay URL, enviar JSON normal.
-      let response;
       if (form.imageFile) {
-        const formData = new FormData();
-        formData.append('name', form.name);
-        formData.append('description', form.description);
-        formData.append('price', Number(form.price));
-        formData.append('category', form.category);
-        formData.append('stock', Number(form.stock) || 0);
-        formData.append('featured', form.featured);
-        formData.append('image', form.imageFile);
+        const fd = new FormData();
+        fd.append('name',        form.name);
+        fd.append('description', form.description);
+        fd.append('price',       Number(form.price));
+        fd.append('category',    form.category);
+        fd.append('stock',       Number(form.stock) || 0);
+        fd.append('featured',    form.featured);
+        fd.append('image',       form.imageFile);
 
-        if (editing) {
-          response = await API.put(`/products/${editing}`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
-        } else {
-          response = await API.post('/products', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
-        }
+        const cfg = { headers: { 'Content-Type': 'multipart/form-data' } };
+        if (editing) await API.put(`/products/${editing}`, fd, cfg);
+        else         await API.post('/products', fd, cfg);
       } else {
         const data = {
-          name: form.name,
+          name:        form.name,
           description: form.description,
-          price: Number(form.price),
-          category: form.category,
-          image: form.image,
-          stock: Number(form.stock) || 0,
-          featured: form.featured,
+          price:       Number(form.price),
+          category:    form.category,
+          image:       form.image,
+          stock:       Number(form.stock) || 0,
+          featured:    form.featured,
         };
-        if (editing) {
-          response = await API.put(`/products/${editing}`, data);
-        } else {
-          response = await API.post('/products', data);
-        }
+        if (editing) await API.put(`/products/${editing}`, data);
+        else         await API.post('/products', data);
       }
 
       toast.success(editing ? '✅ Producto actualizado' : '✅ Producto creado');
@@ -182,11 +164,9 @@ export default function Admin() {
     }
   };
 
-  const formatPrice = (p) =>
+  const formatPrice = p =>
     new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0,
+      style: 'currency', currency: 'COP', maximumFractionDigits: 0,
     }).format(p);
 
   const filtered = products.filter(p =>
@@ -206,7 +186,15 @@ export default function Admin() {
           <p className="admin-subtitle">Bienvenido, {user.name} 👑</p>
         </div>
         <div className="admin-header-actions">
-          <button className="btn btn-primary" onClick={openCreate}>+ Nuevo producto</button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => navigate('/admin/orders')}
+          >
+            📋 Ver pedidos
+          </button>
+          <button className="btn btn-primary" onClick={openCreate}>
+            + Nuevo producto
+          </button>
         </div>
       </div>
 
@@ -320,6 +308,7 @@ export default function Admin() {
                   type="file"
                   accept="image/*"
                   className="form-input"
+                  style={{ marginTop: 8 }}
                   onChange={handleImageUpload}
                 />
               </div>
@@ -336,7 +325,7 @@ export default function Admin() {
                 />
               </div>
 
-              <div className="form-group featured-check">
+              <div className="form-group featured-check full-width">
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -358,7 +347,7 @@ export default function Admin() {
                 <img
                   src={form.image}
                   alt="preview"
-                  onError={e => e.target.style.display = 'none'}
+                  onError={e => { e.target.style.display = 'none'; }}
                 />
               </div>
             )}
@@ -399,7 +388,7 @@ export default function Admin() {
         <div className="empty-state">
           <p style={{ fontSize: 48 }}>📦</p>
           <h3>No hay productos</h3>
-          <p>Crea tu primer producto o carga los de demo</p>
+          <p>Crea tu primer producto</p>
         </div>
       ) : (
         <div className="admin-table-wrap">
@@ -417,9 +406,8 @@ export default function Admin() {
             </thead>
             <tbody>
               {filtered.map(product => (
-                <tr key={product._id} className={product.stock === 0 ? 'out-of-stock' : ''}>
+                <tr key={product.id} className={product.stock === 0 ? 'out-of-stock' : ''}>
                   <td>
-                    {/* FIX 3: via.placeholder.com está deprecado, reemplazado por placehold.co */}
                     <img
                       src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
                       alt={product.name}
@@ -428,29 +416,33 @@ export default function Admin() {
                   </td>
                   <td>
                     <span className="product-name-cell">{product.name}</span>
-                    <span className="product-desc-cell">{product.description?.slice(0, 50)}...</span>
+                    <span className="product-desc-cell">
+                      {product.description?.slice(0, 50)}{product.description?.length > 50 ? '...' : ''}
+                    </span>
                   </td>
                   <td><span className="cat-tag">{product.category}</span></td>
                   <td><span className="price">{formatPrice(product.price)}</span></td>
                   <td>
                     <span className={`stock-badge ${
                       product.stock === 0 ? 'stock-out' :
-                      product.stock < 10 ? 'stock-low' : 'stock-ok'
+                      product.stock < 10  ? 'stock-low' : 'stock-ok'
                     }`}>
-                      {product.stock === 0 ? '❌ Agotado' :
-                       product.stock < 10 ? `⚠️ ${product.stock}` : `✅ ${product.stock}`}
+                      {product.stock === 0  ? '❌ Agotado' :
+                       product.stock < 10   ? `⚠️ ${product.stock}` : `✅ ${product.stock}`}
                     </span>
                   </td>
                   <td className="centered">{product.featured ? '⭐' : '—'}</td>
                   <td>
                     <div className="action-btns">
-                      <button className="btn-edit" onClick={() => openEdit(product)}>✏️ Editar</button>
+                      <button className="btn-edit" onClick={() => openEdit(product)}>
+                        ✏️ Editar
+                      </button>
                       <button
                         className="btn-delete"
-                        onClick={() => handleDelete(product._id, product.name)}
-                        disabled={deleting === product._id}
+                        onClick={() => handleDelete(product.id, product.name)}
+                        disabled={deleting === product.id}
                       >
-                        {deleting === product._id ? '...' : '🗑️'}
+                        {deleting === product.id ? '...' : '🗑️'}
                       </button>
                     </div>
                   </td>
