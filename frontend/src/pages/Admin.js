@@ -170,8 +170,8 @@ export default function Admin() {
     }).format(p);
 
   const filtered = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.category.toLowerCase().includes(search.toLowerCase())
+    (p.name     || '').toLowerCase().includes(search.toLowerCase()) ||
+    (p.category || '').toLowerCase().includes(search.toLowerCase())
   );
 
   if (!user || user.role !== 'admin') return null;
