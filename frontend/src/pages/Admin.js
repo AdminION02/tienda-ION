@@ -6,14 +6,16 @@ import API from '../api';
 import toast from 'react-hot-toast';
 import './Admin.css';
 
+// ─── Constantes ──────────────────────────────────────────────────────────────
+
 const EMPTY_FORM = {
-  name: '',
+  name:        '',
   description: '',
-  price: '',
-  category: '',
-  image: '',
-  stock: '',
-  featured: false,
+  price:       '',
+  category:    '',
+  image:       '',
+  stock:       '',
+  featured:    false,
 };
 
 const CATEGORIES = [
@@ -21,26 +23,32 @@ const CATEGORIES = [
   'Cables', 'Bocinas', 'Smartwatch', 'Dispositivo Móvil', 'Línea Blanca',
 ];
 
-export default function Admin() {
-  const { user }   = useAuth();
-  const navigate   = useNavigate();
-  const fileRef    = useRef(null);
+// ─── Componente ──────────────────────────────────────────────────────────────
 
+export default function Admin() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const fileRef  = useRef(null);
+
+  // Productos
   const [products, setProducts] = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
-  const [deleting, setDeleting] = useState(null);
+  const [search, setSearch]     = useState('');
+
+  // Formulario
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing]   = useState(null);
   const [form, setForm]         = useState(EMPTY_FORM);
-  const [search, setSearch]     = useState('');
+  const [saving, setSaving]     = useState(false);
+  const [deleting, setDeleting] = useState(null);
 
-  // Modo de imagen: 'url' | 'file'
-  const [imageMode, setImageMode] = useState('url');
-  const [imageFile, setImageFile] = useState(null);
+  // Imagen
+  const [imageMode, setImageMode]       = useState('url');
+  const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState('');
 
-  /* ── Auth guard ── */
+  // ─── Auth guard ────────────────────────────────────────────────────────────
+
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
     if (user.role !== 'admin') {
@@ -49,7 +57,8 @@ export default function Admin() {
     }
   }, [user, navigate]);
 
-  /* ── Carga de productos ── */
+  // ─── Carga de productos ────────────────────────────────────────────────────
+
   const loadProducts = () => {
     setLoading(true);
     getProducts()
@@ -60,18 +69,11 @@ export default function Admin() {
 
   useEffect(() => { loadProducts(); }, []);
 
-  /* ── Handlers de formulario ── */
-  const handleChange = e => {
-    const { name, value, type, checked } = e.target;
-    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
-  };
+  // ─── Handlers de imagen ────────────────────────────────────────────────────
 
-  // Cuando el usuario elige un archivo local
   const handleFileChange = e => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Validaciones básicas
     if (!file.type.startsWith('image/')) {
       toast.error('Solo se permiten imágenes');
       return;
@@ -80,7 +82,6 @@ export default function Admin() {
       toast.error('La imagen no puede superar los 5 MB');
       return;
     }
-
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
@@ -92,7 +93,13 @@ export default function Admin() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  /* ── Abrir / cerrar formulario ── */
+  // ─── Handlers del formulario ───────────────────────────────────────────────
+
+  const handleChange = e => {
+    const { name, value, type, checked } = e.target;
+    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
+  };
+
   const openCreate = () => {
     setEditing(null);
     setForm(EMPTY_FORM);
@@ -113,7 +120,6 @@ export default function Admin() {
       featured:    product.featured    || false,
     });
     resetImageState();
-    // Si ya tiene imagen guardada, mostrarla como preview
     if (product.image) setImagePreview(product.image);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -126,7 +132,8 @@ export default function Admin() {
     resetImageState();
   };
 
-  /* ── Submit ── */
+  // ─── Submit ────────────────────────────────────────────────────────────────
+
   const handleSubmit = async e => {
     e.preventDefault();
 
@@ -135,7 +142,6 @@ export default function Admin() {
       return;
     }
 
-    // Validar que haya alguna imagen
     const tieneUrl  = imageMode === 'url'  && form.image.trim();
     const tieneFile = imageMode === 'file' && imageFile;
     if (!tieneUrl && !tieneFile) {
@@ -147,40 +153,30 @@ export default function Admin() {
     try {
       let imageUrl = form.image;
 
-      // Si viene de archivo, enviamos FormData; si viene de URL, enviamos JSON normal
+      // 1. Si viene archivo → subir a Cloudinary primero y obtener URL
       if (imageMode === 'file' && imageFile) {
-        const formData = new FormData();
-        formData.append('image',       imageFile);
-        formData.append('name',        form.name);
-        formData.append('description', form.description);
-        formData.append('price',       Number(form.price));
-        formData.append('category',    form.category);
-        formData.append('stock',       Number(form.stock) || 0);
-        formData.append('featured',    form.featured);
+        const uploadData = new FormData();
+        uploadData.append('image', imageFile);
 
-        const res = editing
-          ? await API.put(`/api/products/${editing}`, formData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
-            })
-          : await API.post('/api/products', formData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
-            });
-
-        imageUrl = res.data.image; // el backend devuelve la URL guardada
-      } else {
-        // Modo URL → JSON normal (comportamiento original)
-        const data = {
-          name:        form.name,
-          description: form.description,
-          price:       Number(form.price),
-          category:    form.category,
-          image:       imageUrl,
-          stock:       Number(form.stock) || 0,
-          featured:    form.featured,
-        };
-        if (editing) await API.put(`/api/products/${editing}`, data);
-        else         await API.post('/api/products', data);
+        const uploadRes = await API.post('/api/upload', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        imageUrl = uploadRes.data.url; // URL pública de Cloudinary
       }
+
+      // 2. Guardar producto con la URL final (sea de Cloudinary o pegada a mano)
+      const payload = {
+        name:        form.name,
+        description: form.description,
+        price:       Number(form.price),
+        category:    form.category,
+        image:       imageUrl,
+        stock:       Number(form.stock) || 0,
+        featured:    form.featured,
+      };
+
+      if (editing) await API.put(`/api/products/${editing}`, payload);
+      else         await API.post('/api/products', payload);
 
       toast.success(editing ? '✅ Producto actualizado' : '✅ Producto creado');
       closeForm();
@@ -192,7 +188,8 @@ export default function Admin() {
     }
   };
 
-  /* ── Eliminar ── */
+  // ─── Eliminar ──────────────────────────────────────────────────────────────
+
   const handleDelete = async (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`)) return;
     setDeleting(id);
@@ -207,7 +204,8 @@ export default function Admin() {
     }
   };
 
-  /* ── Helpers ── */
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
   const formatPrice = p =>
     new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP', maximumFractionDigits: 0,
@@ -218,14 +216,12 @@ export default function Admin() {
     (p.category || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  // Preview final que se muestra debajo del campo de imagen
-  const previewSrc = imageMode === 'file'
-    ? imagePreview
-    : form.image || imagePreview;
+  const previewSrc = imageMode === 'file' ? imagePreview : form.image || imagePreview;
 
   if (!user || user.role !== 'admin') return null;
 
-  /* ── Render ── */
+  // ─── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="admin-page container">
 
@@ -345,11 +341,10 @@ export default function Admin() {
                 />
               </div>
 
-              {/* ── Imagen ── */}
+              {/* Imagen */}
               <div className="form-group full-width">
                 <label>Imagen del producto</label>
 
-                {/* Tabs URL / Archivo */}
                 <div className="image-mode-tabs">
                   <button
                     type="button"
@@ -367,7 +362,6 @@ export default function Admin() {
                   </button>
                 </div>
 
-                {/* Input URL */}
                 {imageMode === 'url' && (
                   <>
                     <input
@@ -386,7 +380,6 @@ export default function Admin() {
                   </>
                 )}
 
-                {/* Input archivo */}
                 {imageMode === 'file' && (
                   <>
                     <div
@@ -399,11 +392,10 @@ export default function Admin() {
                         if (file) handleFileChange({ target: { files: [file] } });
                       }}
                     >
-                      {imageFile ? (
-                        <span>📎 {imageFile.name}</span>
-                      ) : (
-                        <span>Arrastra una imagen aquí o <strong>haz clic para seleccionar</strong></span>
-                      )}
+                      {imageFile
+                        ? <span>📎 {imageFile.name}</span>
+                        : <span>Arrastra una imagen aquí o <strong>haz clic para seleccionar</strong></span>
+                      }
                     </div>
                     <input
                       ref={fileRef}
@@ -447,7 +439,7 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* Vista previa de imagen */}
+            {/* Vista previa */}
             {previewSrc && (
               <div className="img-preview">
                 <span>Vista previa:</span>
@@ -472,7 +464,7 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Toolbar de búsqueda */}
+      {/* Toolbar */}
       <div className="admin-toolbar">
         <div className="search-wrap" style={{ maxWidth: 320 }}>
           <span className="search-icon">🔍</span>

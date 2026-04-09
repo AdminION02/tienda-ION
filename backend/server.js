@@ -14,6 +14,7 @@ const pool    = require('./db');
 const authRoutes    = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const orderRoutes   = require('./routes/orders');
+const uploadRoute   = require('./routes/upload');
 
 // ─── 4. App & Middleware ─────────────────────────────────────────────
 const app = express();
@@ -23,7 +24,7 @@ app.use(cors({
     'https://tienda-ion.vercel.app',
     'http://localhost:3000'
   ],
-  credentials: true
+  credentials: true,
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -32,6 +33,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth',     authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders',   orderRoutes);
+app.use('/api/upload',   uploadRoute);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Servidor funcionando correctamente' });
