@@ -14,7 +14,6 @@ const EMPTY_FORM = {
   image: '',
   stock: '',
   featured: false,
-  imageFile: null,
 };
 
 const CATEGORIES = [
@@ -26,16 +25,15 @@ export default function Admin() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [products, setProducts]   = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
-  const [deleting, setDeleting]   = useState(null);
-  const [showForm, setShowForm]   = useState(false);
-  const [editing, setEditing]     = useState(null);
-  const [form, setForm]           = useState(EMPTY_FORM);
-  const [search, setSearch]       = useState('');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [deleting, setDeleting] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing]   = useState(null);
+  const [form, setForm]         = useState(EMPTY_FORM);
+  const [search, setSearch]     = useState('');
 
-  // Proteger ruta
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
     if (user.role !== 'admin') {
@@ -44,7 +42,6 @@ export default function Admin() {
     }
   }, [user, navigate]);
 
-  // Cargar productos
   const loadProducts = () => {
     setLoading(true);
     getProducts()
@@ -55,25 +52,9 @@ export default function Admin() {
 
   useEffect(() => { loadProducts(); }, []);
 
-  // Handlers formulario
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
-  };
-
-  const handleUrlChange = e => {
-    setForm(prev => ({ ...prev, image: e.target.value, imageFile: null }));
-  };
-
-  const handleImageUpload = e => {
-    const file = e.target.files[0];
-    if (file) {
-      setForm(prev => ({
-        ...prev,
-        image: URL.createObjectURL(file),
-        imageFile: file,
-      }));
-    }
   };
 
   const openCreate = () => {
@@ -86,14 +67,13 @@ export default function Admin() {
   const openEdit = product => {
     setEditing(product.id);
     setForm({
-      name:        product.name,
-      description: product.description,
-      price:       product.price,
-      category:    product.category,
-      image:       product.image || '',
-      stock:       product.stock,
-      featured:    product.featured || false,
-      imageFile:   null,
+      name:        product.name        || '',
+      description: product.description || '',
+      price:       product.price       || '',
+      category:    product.category    || '',
+      image:       product.image       || '',
+      stock:       product.stock       || '',
+      featured:    product.featured    || false,
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -113,32 +93,17 @@ export default function Admin() {
     }
     setSaving(true);
     try {
-      if (form.imageFile) {
-        const fd = new FormData();
-        fd.append('name',        form.name);
-        fd.append('description', form.description);
-        fd.append('price',       Number(form.price));
-        fd.append('category',    form.category);
-        fd.append('stock',       Number(form.stock) || 0);
-        fd.append('featured',    form.featured);
-        fd.append('image',       form.imageFile);
-
-        const cfg = { headers: { 'Content-Type': 'multipart/form-data' } };
-        if (editing) await API.put(`/api/products/${editing}`, fd, cfg);
-        else         await API.post('/api/products', fd, cfg);
-      } else {
-        const data = {
-          name:        form.name,
-          description: form.description,
-          price:       Number(form.price),
-          category:    form.category,
-          image:       form.image,
-          stock:       Number(form.stock) || 0,
-          featured:    form.featured,
-        };
-        if (editing) await API.put(`/api/products/${editing}`, data);
-        else         await API.post('/api/products', data);
-      }
+      const data = {
+        name:        form.name,
+        description: form.description,
+        price:       Number(form.price),
+        category:    form.category,
+        image:       form.image,
+        stock:       Number(form.stock) || 0,
+        featured:    form.featured,
+      };
+      if (editing) await API.put(`/api/products/${editing}`, data);
+      else         await API.post('/api/products', data);
 
       toast.success(editing ? '✅ Producto actualizado' : '✅ Producto creado');
       closeForm();
@@ -178,18 +143,13 @@ export default function Admin() {
 
   return (
     <div className="admin-page container">
-
-      {/* Header */}
       <div className="admin-header">
         <div>
           <h1>Panel <span className="text-accent">Admin</span></h1>
           <p className="admin-subtitle">Bienvenido, {user.name} 👑</p>
         </div>
         <div className="admin-header-actions">
-          <button
-            className="btn btn-secondary"
-            onClick={() => navigate('./OrdersUdapte.js')}
-          >
+          <button className="btn btn-secondary" onClick={() => navigate('/admin/orders')}>
             📋 Ver pedidos
           </button>
           <button className="btn btn-primary" onClick={openCreate}>
@@ -198,7 +158,6 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="admin-stats">
         <div className="stat-card card">
           <span className="stat-icon">📦</span>
@@ -230,132 +189,69 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Formulario crear/editar */}
       {showForm && (
         <div className="admin-form-wrap card">
           <div className="form-header">
             <h3>{editing ? '✏️ Editar producto' : '➕ Nuevo producto'}</h3>
             <button className="close-btn" onClick={closeForm}>✕</button>
           </div>
-
           <form onSubmit={handleSubmit} className="admin-form">
             <div className="form-grid">
-
               <div className="form-group">
                 <label>Nombre del producto *</label>
-                <input
-                  name="name"
-                  className="form-input"
-                  placeholder="Ej: Audífonos Bluetooth"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                />
+                <input name="name" className="form-input" placeholder="Ej: Audífonos Bluetooth"
+                  value={form.name} onChange={handleChange} required />
               </div>
-
               <div className="form-group">
                 <label>Categoría *</label>
-                <select
-                  name="category"
-                  className="form-input form-select"
-                  value={form.category}
-                  onChange={handleChange}
-                  required
-                >
+                <select name="category" className="form-input form-select"
+                  value={form.category} onChange={handleChange} required>
                   <option value="">Seleccionar categoría</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
-
               <div className="form-group">
                 <label>Precio (COP) *</label>
-                <input
-                  name="price"
-                  type="number"
-                  className="form-input"
-                  placeholder="Ej: 180000"
-                  value={form.price}
-                  onChange={handleChange}
-                  min="0"
-                  required
-                />
+                <input name="price" type="number" className="form-input" placeholder="Ej: 180000"
+                  value={form.price} onChange={handleChange} min="0" required />
               </div>
-
               <div className="form-group">
                 <label>Stock disponible</label>
-                <input
-                  name="stock"
-                  type="number"
-                  className="form-input"
-                  placeholder="Ej: 50"
-                  value={form.stock}
-                  onChange={handleChange}
-                  min="0"
-                />
+                <input name="stock" type="number" className="form-input" placeholder="Ej: 50"
+                  value={form.stock} onChange={handleChange} min="0" />
               </div>
-
               <div className="form-group full-width">
-                <label>Imagen (URL o archivo)</label>
-                <input
-                  name="image"
-                  type="url"
-                  className="form-input"
-                  placeholder="https://..."
-                  value={form.imageFile ? '' : form.image}
-                  onChange={handleUrlChange}
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="form-input"
-                  style={{ marginTop: 8 }}
-                  onChange={handleImageUpload}
-                />
+                <label>URL de imagen</label>
+                <input name="image" type="url" className="form-input" placeholder="https://..."
+                  value={form.image} onChange={handleChange} />
+                <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
+                  💡 Sube tu imagen a <a href="https://imgbb.com" target="_blank" rel="noreferrer">imgbb.com</a> o <a href="https://imgur.com" target="_blank" rel="noreferrer">imgur.com</a> y pega el enlace aquí
+                </small>
               </div>
-
               <div className="form-group full-width">
                 <label>Descripción</label>
-                <textarea
-                  name="description"
-                  className="form-input form-textarea"
-                  placeholder="Describe el producto..."
-                  value={form.description}
-                  onChange={handleChange}
-                  rows={3}
-                />
+                <textarea name="description" className="form-input form-textarea"
+                  placeholder="Describe el producto..." value={form.description}
+                  onChange={handleChange} rows={3} />
               </div>
-
               <div className="form-group featured-check full-width">
                 <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="featured"
-                    checked={form.featured}
-                    onChange={handleChange}
-                  />
+                  <input type="checkbox" name="featured" checked={form.featured} onChange={handleChange} />
                   <span className="checkmark" />
                   ⭐ Marcar como producto destacado (aparece en el inicio)
                 </label>
               </div>
-
             </div>
 
-            {/* Preview imagen */}
             {form.image && (
               <div className="img-preview">
                 <span>Vista previa:</span>
-                <img
-                  src={form.image}
-                  alt="preview"
-                  onError={e => { e.target.style.display = 'none'; }}
-                />
+                <img src={form.image} alt="preview" onError={e => { e.target.style.display = 'none'; }} />
               </div>
             )}
 
             <div className="form-actions">
-              <button type="button" className="btn btn-secondary" onClick={closeForm}>
-                Cancelar
-              </button>
+              <button type="button" className="btn btn-secondary" onClick={closeForm}>Cancelar</button>
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? 'Guardando...' : editing ? '💾 Guardar cambios' : '✅ Crear producto'}
               </button>
@@ -364,24 +260,15 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Buscador */}
       <div className="admin-toolbar">
         <div className="search-wrap" style={{ maxWidth: 320 }}>
           <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            className="form-input search-input"
-            placeholder="Buscar producto..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <input type="text" className="form-input search-input" placeholder="Buscar producto..."
+            value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <span className="results-count">
-          {filtered.length} producto{filtered.length !== 1 ? 's' : ''}
-        </span>
+        <span className="results-count">{filtered.length} producto{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
-      {/* Tabla de productos */}
       {loading ? (
         <div className="loader"><div className="spinner" /></div>
       ) : filtered.length === 0 ? (
@@ -395,24 +282,16 @@ export default function Admin() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Imagen</th>
-                <th>Producto</th>
-                <th>Categoría</th>
-                <th>Precio</th>
-                <th>Stock</th>
-                <th>Destacado</th>
-                <th>Acciones</th>
+                <th>Imagen</th><th>Producto</th><th>Categoría</th>
+                <th>Precio</th><th>Stock</th><th>Destacado</th><th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(product => (
                 <tr key={product.id} className={product.stock === 0 ? 'out-of-stock' : ''}>
                   <td>
-                    <img
-                      src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
-                      alt={product.name}
-                      className="table-img"
-                    />
+                    <img src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
+                      alt={product.name} className="table-img" />
                   </td>
                   <td>
                     <span className="product-name-cell">{product.name}</span>
@@ -423,25 +302,17 @@ export default function Admin() {
                   <td><span className="cat-tag">{product.category}</span></td>
                   <td><span className="price">{formatPrice(product.price)}</span></td>
                   <td>
-                    <span className={`stock-badge ${
-                      product.stock === 0 ? 'stock-out' :
-                      product.stock < 10  ? 'stock-low' : 'stock-ok'
-                    }`}>
-                      {product.stock === 0  ? '❌ Agotado' :
-                       product.stock < 10   ? `⚠️ ${product.stock}` : `✅ ${product.stock}`}
+                    <span className={`stock-badge ${product.stock === 0 ? 'stock-out' : product.stock < 10 ? 'stock-low' : 'stock-ok'}`}>
+                      {product.stock === 0 ? '❌ Agotado' : product.stock < 10 ? `⚠️ ${product.stock}` : `✅ ${product.stock}`}
                     </span>
                   </td>
                   <td className="centered">{product.featured ? '⭐' : '—'}</td>
                   <td>
                     <div className="action-btns">
-                      <button className="btn-edit" onClick={() => openEdit(product)}>
-                        ✏️ Editar
-                      </button>
-                      <button
-                        className="btn-delete"
+                      <button className="btn-edit" onClick={() => openEdit(product)}>✏️ Editar</button>
+                      <button className="btn-delete"
                         onClick={() => handleDelete(product.id, product.name)}
-                        disabled={deleting === product.id}
-                      >
+                        disabled={deleting === product.id}>
                         {deleting === product.id ? '...' : '🗑️'}
                       </button>
                     </div>
