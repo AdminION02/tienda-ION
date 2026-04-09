@@ -81,7 +81,7 @@ export default function Home() {
       <section className="featured-section container">
         <div className="section-header">
           <h2>Productos <span className="text-accent">Destacados</span></h2>
-          <Link to="/products" className="btn btn-secondary">Ver todos →</Link>
+          <Link to="/products" className="btn btn-secondary">Ver todos</Link>
         </div>
 
         {loading ? (
