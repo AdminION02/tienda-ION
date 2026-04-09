@@ -8,6 +8,7 @@ require('dotenv').config();
 // ─── 3. Imports ──────────────────────────────────────────────────────
 const express = require('express');
 const cors    = require('cors');
+const path    = require('path');
 const pool    = require('./db');
 
 const authRoutes    = require('./routes/auth');
@@ -25,6 +26,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ─── 5. Rutas ────────────────────────────────────────────────────────
 app.use('/api/auth',     authRoutes);
