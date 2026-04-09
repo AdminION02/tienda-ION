@@ -124,8 +124,8 @@ export default function Admin() {
         fd.append('image',       form.imageFile);
 
         const cfg = { headers: { 'Content-Type': 'multipart/form-data' } };
-        if (editing) await API.put(`/products/${editing}`, fd, cfg);
-        else         await API.post('/products', fd, cfg);
+        if (editing) await API.put(`/api/products/${editing}`, fd, cfg);
+        else         await API.post('/api/products', fd, cfg);
       } else {
         const data = {
           name:        form.name,
@@ -136,8 +136,8 @@ export default function Admin() {
           stock:       Number(form.stock) || 0,
           featured:    form.featured,
         };
-        if (editing) await API.put(`/products/${editing}`, data);
-        else         await API.post('/products', data);
+        if (editing) await API.put(`/api/products/${editing}`, data);
+        else         await API.post('/api/products', data);
       }
 
       toast.success(editing ? '✅ Producto actualizado' : '✅ Producto creado');
@@ -154,7 +154,7 @@ export default function Admin() {
     if (!window.confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`)) return;
     setDeleting(id);
     try {
-      await API.delete(`/products/${id}`);
+      await API.delete(`/api/products/${id}`);
       toast.success('🗑️ Producto eliminado');
       loadProducts();
     } catch {
@@ -188,7 +188,7 @@ export default function Admin() {
         <div className="admin-header-actions">
           <button
             className="btn btn-secondary"
-            onClick={() => navigate('/admin/orders')}
+            onClick={() => navigate('./OrdersUdapte.js')}
           >
             📋 Ver pedidos
           </button>
