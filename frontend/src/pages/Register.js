@@ -61,7 +61,7 @@ export default function Register() {
             <input type="password" name="confirm" className="form-input" placeholder="Repite tu contraseña" value={form.confirm} onChange={handleChange} required />
           </div>
           <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
-            {loading ? 'Creando cuenta...' : 'Crear Cuenta 🚀'}
+            {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
           </button>
         </form>
 
