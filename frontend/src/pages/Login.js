@@ -61,7 +61,7 @@ export default function Login() {
             />
           </div>
           <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
-            {loading ? 'Entrando...' : 'Iniciar Sesión →'}
+            {loading ? 'Entrando...' : 'Iniciar Sesión'}
           </button>
         </form>
 
