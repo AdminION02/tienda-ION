@@ -75,7 +75,7 @@
   width: 60px;
   object-fit: cover;
   border-radius: 50%;
-  background: #fff; /* clave para que el logo resalte */
+  background: #ffffff00; /* clave para que el logo resalte */
   padding: 6px; /* aire interno para que no quede pegado */
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
