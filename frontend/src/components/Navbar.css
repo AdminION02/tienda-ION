@@ -75,9 +75,9 @@
   width: 60px;
   object-fit: cover;
   border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(6px);
-  padding: 6px;
+  background: #fff; /* clave para que el logo resalte */
+  padding: 6px; /* aire interno para que no quede pegado */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 /* ============================================================
    LINKS — desktop
