@@ -74,14 +74,8 @@ export default function Admin() {
   const handleFileChange = e => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('Solo se permiten imágenes');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('La imagen no puede superar los 5 MB');
-      return;
-    }
+    if (!file.type.startsWith('image/')) { toast.error('Solo se permiten imágenes'); return; }
+    if (file.size > 5 * 1024 * 1024)    { toast.error('La imagen no puede superar los 5 MB'); return; }
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
@@ -153,18 +147,15 @@ export default function Admin() {
     try {
       let imageUrl = form.image;
 
-      // 1. Si viene archivo → subir a Cloudinary primero y obtener URL
       if (imageMode === 'file' && imageFile) {
         const uploadData = new FormData();
         uploadData.append('image', imageFile);
-
         const uploadRes = await API.post('/api/upload', uploadData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        imageUrl = uploadRes.data.url; // URL pública de Cloudinary
+        imageUrl = uploadRes.data.url;
       }
 
-      // 2. Guardar producto con la URL final (sea de Cloudinary o pegada a mano)
       const payload = {
         name:        form.name,
         description: form.description,
@@ -284,94 +275,53 @@ export default function Admin() {
           <form onSubmit={handleSubmit} className="admin-form">
             <div className="form-grid">
 
-              {/* Nombre */}
               <div className="form-group">
                 <label>Nombre del producto *</label>
-                <input
-                  name="name"
-                  className="form-input"
-                  placeholder="Ej: Audífonos Bluetooth"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                />
+                <input name="name" className="form-input" placeholder="Ej: Audífonos Bluetooth"
+                  value={form.name} onChange={handleChange} required />
               </div>
 
-              {/* Categoría */}
               <div className="form-group">
                 <label>Categoría *</label>
-                <select
-                  name="category"
-                  className="form-input form-select"
-                  value={form.category}
-                  onChange={handleChange}
-                  required
-                >
+                <select name="category" className="form-input form-select"
+                  value={form.category} onChange={handleChange} required>
                   <option value="">Seleccionar categoría</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
 
-              {/* Precio */}
               <div className="form-group">
                 <label>Precio (COP) *</label>
-                <input
-                  name="price"
-                  type="number"
-                  className="form-input"
-                  placeholder="Ej: 180000"
-                  value={form.price}
-                  onChange={handleChange}
-                  min="0"
-                  required
-                />
+                <input name="price" type="number" className="form-input" placeholder="Ej: 180000"
+                  value={form.price} onChange={handleChange} min="0" required />
               </div>
 
-              {/* Stock */}
               <div className="form-group">
                 <label>Stock disponible</label>
-                <input
-                  name="stock"
-                  type="number"
-                  className="form-input"
-                  placeholder="Ej: 50"
-                  value={form.stock}
-                  onChange={handleChange}
-                  min="0"
-                />
+                <input name="stock" type="number" className="form-input" placeholder="Ej: 50"
+                  value={form.stock} onChange={handleChange} min="0" />
               </div>
 
               {/* Imagen */}
               <div className="form-group full-width">
                 <label>Imagen del producto</label>
-
                 <div className="image-mode-tabs">
-                  <button
-                    type="button"
+                  <button type="button"
                     className={`image-tab ${imageMode === 'url' ? 'active' : ''}`}
-                    onClick={() => { setImageMode('url'); setImageFile(null); setImagePreview(''); }}
-                  >
+                    onClick={() => { setImageMode('url'); setImageFile(null); setImagePreview(''); }}>
                     🔗 URL
                   </button>
-                  <button
-                    type="button"
+                  <button type="button"
                     className={`image-tab ${imageMode === 'file' ? 'active' : ''}`}
-                    onClick={() => { setImageMode('file'); setForm(f => ({ ...f, image: '' })); }}
-                  >
+                    onClick={() => { setImageMode('file'); setForm(f => ({ ...f, image: '' })); }}>
                     📁 Subir archivo
                   </button>
                 </div>
 
                 {imageMode === 'url' && (
                   <>
-                    <input
-                      name="image"
-                      type="url"
-                      className="form-input"
-                      placeholder="https://..."
-                      value={form.image}
-                      onChange={handleChange}
-                    />
+                    <input name="image" type="url" className="form-input" placeholder="https://..."
+                      value={form.image} onChange={handleChange} />
                     <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
                       💡 Sube tu imagen a{' '}
                       <a href="https://imgbb.com" target="_blank" rel="noreferrer">imgbb.com</a> o{' '}
@@ -382,28 +332,21 @@ export default function Admin() {
 
                 {imageMode === 'file' && (
                   <>
-                    <div
-                      className="file-drop-zone"
+                    <div className="file-drop-zone"
                       onClick={() => fileRef.current?.click()}
                       onDragOver={e => e.preventDefault()}
                       onDrop={e => {
                         e.preventDefault();
                         const file = e.dataTransfer.files[0];
                         if (file) handleFileChange({ target: { files: [file] } });
-                      }}
-                    >
+                      }}>
                       {imageFile
                         ? <span>📎 {imageFile.name}</span>
                         : <span>Arrastra una imagen aquí o <strong>haz clic para seleccionar</strong></span>
                       }
                     </div>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      onChange={handleFileChange}
-                    />
+                    <input ref={fileRef} type="file" accept="image/*"
+                      style={{ display: 'none' }} onChange={handleFileChange} />
                     <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
                       Formatos: JPG, PNG, WEBP · Máximo 5 MB
                     </small>
@@ -411,51 +354,31 @@ export default function Admin() {
                 )}
               </div>
 
-              {/* Descripción */}
               <div className="form-group full-width">
                 <label>Descripción</label>
-                <textarea
-                  name="description"
-                  className="form-input form-textarea"
-                  placeholder="Describe el producto..."
-                  value={form.description}
-                  onChange={handleChange}
-                  rows={3}
-                />
+                <textarea name="description" className="form-input form-textarea"
+                  placeholder="Describe el producto..." value={form.description}
+                  onChange={handleChange} rows={3} />
               </div>
 
-              {/* Destacado */}
               <div className="form-group featured-check full-width">
                 <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="featured"
-                    checked={form.featured}
-                    onChange={handleChange}
-                  />
+                  <input type="checkbox" name="featured" checked={form.featured} onChange={handleChange} />
                   <span className="checkmark" />
                   ⭐ Marcar como producto destacado (aparece en el inicio)
                 </label>
               </div>
             </div>
 
-            {/* Vista previa */}
             {previewSrc && (
               <div className="img-preview">
                 <span>Vista previa:</span>
-                <img
-                  src={previewSrc}
-                  alt="preview"
-                  onError={e => { e.target.style.display = 'none'; }}
-                />
+                <img src={previewSrc} alt="preview" onError={e => { e.target.style.display = 'none'; }} />
               </div>
             )}
 
-            {/* Acciones */}
             <div className="form-actions">
-              <button type="button" className="btn btn-secondary" onClick={closeForm}>
-                Cancelar
-              </button>
+              <button type="button" className="btn btn-secondary" onClick={closeForm}>Cancelar</button>
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? 'Guardando...' : editing ? '💾 Guardar cambios' : '✅ Crear producto'}
               </button>
@@ -468,20 +391,15 @@ export default function Admin() {
       <div className="admin-toolbar">
         <div className="search-wrap" style={{ maxWidth: 320 }}>
           <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            className="form-input search-input"
-            placeholder="Buscar producto..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <input type="text" className="form-input search-input" placeholder="Buscar producto..."
+            value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <span className="results-count">
           {filtered.length} producto{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
 
-      {/* Tabla */}
+      {/* Contenido */}
       {loading ? (
         <div className="loader"><div className="spinner" /></div>
       ) : filtered.length === 0 ? (
@@ -491,71 +409,128 @@ export default function Admin() {
           <p>Crea tu primer producto</p>
         </div>
       ) : (
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Imagen</th>
-                <th>Producto</th>
-                <th>Categoría</th>
-                <th>Precio</th>
-                <th>Stock</th>
-                <th>Destacado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(product => (
-                <tr key={product.id} className={product.stock === 0 ? 'out-of-stock' : ''}>
-                  <td>
-                    <img
-                      src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
-                      alt={product.name}
-                      className="table-img"
-                    />
-                  </td>
-                  <td>
-                    <span className="product-name-cell">{product.name}</span>
-                    <span className="product-desc-cell">
-                      {product.description?.slice(0, 50)}
-                      {product.description?.length > 50 ? '...' : ''}
-                    </span>
-                  </td>
-                  <td><span className="cat-tag">{product.category}</span></td>
-                  <td><span className="price">{formatPrice(product.price)}</span></td>
-                  <td>
+        <>
+          {/* ── Tabla desktop ── */}
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Imagen</th>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Destacado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(product => (
+                  <tr key={product.id} className={product.stock === 0 ? 'out-of-stock' : ''}>
+                    <td>
+                      <img src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
+                        alt={product.name} className="table-img" />
+                    </td>
+                    <td>
+                      <span className="product-name-cell">{product.name}</span>
+                      <span className="product-desc-cell">
+                        {product.description?.slice(0, 50)}
+                        {product.description?.length > 50 ? '...' : ''}
+                      </span>
+                    </td>
+                    <td><span className="cat-tag">{product.category}</span></td>
+                    <td><span className="price">{formatPrice(product.price)}</span></td>
+                    <td>
+                      <span className={`stock-badge ${
+                        product.stock === 0 ? 'stock-out'
+                        : product.stock < 10 ? 'stock-low'
+                        : 'stock-ok'
+                      }`}>
+                        {product.stock === 0 ? '❌ Agotado'
+                          : product.stock < 10 ? `⚠️ ${product.stock}`
+                          : `✅ ${product.stock}`}
+                      </span>
+                    </td>
+                    <td className="centered">{product.featured ? '⭐' : '—'}</td>
+                    <td>
+                      <div className="action-btns">
+                        <button className="btn-edit" onClick={() => openEdit(product)}>✏️ Editar</button>
+                        <button className="btn-delete"
+                          onClick={() => handleDelete(product.id, product.name)}
+                          disabled={deleting === product.id}>
+                          {deleting === product.id ? '...' : '🗑️'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ── Tarjetas móvil ── */}
+          <div className="mobile-cards">
+            {filtered.map(product => (
+              <div key={product.id} className={`mobile-card card ${product.stock === 0 ? 'out-of-stock' : ''}`}>
+
+                {/* Top: imagen + nombre */}
+                <div className="mobile-card-top">
+                  <img
+                    src={product.image || 'https://placehold.co/56x56?text=?'}
+                    alt={product.name}
+                    className="mobile-card-img"
+                  />
+                  <div className="mobile-card-info">
+                    <div className="mobile-card-name">{product.name}</div>
+                    <div className="mobile-card-cat">{product.category}</div>
+                    {product.featured && <div className="mobile-card-featured">⭐ Destacado</div>}
+                  </div>
+                </div>
+
+                {/* Body: precio + stock */}
+                <div className="mobile-card-body">
+                  <div className="mobile-card-field">
+                    <span>Precio</span>
+                    <span className="price">{formatPrice(product.price)}</span>
+                  </div>
+                  <div className="mobile-card-field">
+                    <span>Stock</span>
                     <span className={`stock-badge ${
                       product.stock === 0 ? 'stock-out'
                       : product.stock < 10 ? 'stock-low'
                       : 'stock-ok'
                     }`}>
-                      {product.stock === 0
-                        ? '❌ Agotado'
-                        : product.stock < 10
-                        ? `⚠️ ${product.stock}`
+                      {product.stock === 0 ? '❌ Agotado'
+                        : product.stock < 10 ? `⚠️ ${product.stock}`
                         : `✅ ${product.stock}`}
                     </span>
-                  </td>
-                  <td className="centered">{product.featured ? '⭐' : '—'}</td>
-                  <td>
-                    <div className="action-btns">
-                      <button className="btn-edit" onClick={() => openEdit(product)}>
-                        ✏️ Editar
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => handleDelete(product.id, product.name)}
-                        disabled={deleting === product.id}
-                      >
-                        {deleting === product.id ? '...' : '🗑️'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+
+                {/* Descripción */}
+                {product.description && (
+                  <p className="mobile-card-desc">
+                    {product.description.slice(0, 80)}{product.description.length > 80 ? '...' : ''}
+                  </p>
+                )}
+
+                {/* Acciones */}
+                <div className="mobile-card-actions">
+                  <button className="btn-edit" style={{ flex: 1, textAlign: 'center' }}
+                    onClick={() => openEdit(product)}>
+                    ✏️ Editar
+                  </button>
+                  <button className="btn-delete"
+                    onClick={() => handleDelete(product.id, product.name)}
+                    disabled={deleting === product.id}>
+                    {deleting === product.id ? '...' : '🗑️'}
+                  </button>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
