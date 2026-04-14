@@ -73,8 +73,11 @@
 .navbar-logo-img {
   width: 60px;
   height: 60px;
-  object-fit: contain; /* importante para PNG transparente */
+
+  object-fit: cover; /* 🔥 clave */
   border-radius: 50%;
+
+  display: block;
 }
 /* ============================================================
    LINKS — desktop
