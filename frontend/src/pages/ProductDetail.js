@@ -32,7 +32,6 @@ export default function ProductDetail() {
 
   return (
     <div className="detail-page container">
-      <Link to="/products" className="back-btn">Volver a productos</Link>
       <div className="detail-grid">
         <div className="detail-img-wrap">
           <img src={product.image} alt={product.name} className="detail-img" />
