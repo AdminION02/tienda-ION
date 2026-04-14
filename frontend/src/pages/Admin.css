@@ -1,19 +1,32 @@
+/* ============================================================
+   ADMIN PAGE — Responsive
+   ============================================================ */
 .admin-page {
-  padding: 40px 24px 80px;
+  padding: clamp(20px, 4vw, 40px) clamp(16px, 3vw, 24px) 80px;
 }
 
-/* Header */
+
+/* ============================================================
+   HEADER
+   ============================================================ */
 .admin-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: clamp(20px, 3vw, 32px);
   flex-wrap: wrap;
 }
 
-.admin-header h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
-.admin-subtitle { color: var(--text2); margin-top: 4px; font-size: 15px; }
+.admin-header h1 {
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+}
+
+.admin-subtitle {
+  color: var(--text2);
+  margin-top: 4px;
+  font-size: clamp(13px, 1.5vw, 15px);
+}
 
 .admin-header-actions {
   display: flex;
@@ -21,27 +34,33 @@
   flex-wrap: wrap;
 }
 
-/* Stats */
+
+/* ============================================================
+   STATS
+   ============================================================ */
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: clamp(10px, 2vw, 16px);
+  margin-bottom: clamp(20px, 3vw, 32px);
 }
 
 .stat-card {
-  padding: 20px;
+  padding: clamp(14px, 2vw, 20px);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-.stat-icon { font-size: 32px; }
+.stat-icon {
+  font-size: clamp(24px, 3vw, 32px);
+  flex-shrink: 0;
+}
 
 .stat-card .stat-num {
   display: block;
   font-family: 'Syne', sans-serif;
-  font-size: 28px;
+  font-size: clamp(20px, 3vw, 28px);
   font-weight: 800;
   color: var(--accent);
   line-height: 1;
@@ -49,7 +68,7 @@
 
 .stat-card .stat-label {
   display: block;
-  font-size: 12px;
+  font-size: clamp(10px, 1.2vw, 12px);
   color: var(--text2);
   margin-top: 4px;
   font-weight: 600;
@@ -57,11 +76,14 @@
   letter-spacing: 0.5px;
 }
 
-/* Form */
+
+/* ============================================================
+   FORMULARIO
+   ============================================================ */
 .admin-form-wrap {
-  padding: 28px;
+  padding: clamp(16px, 3vw, 28px);
   margin-bottom: 28px;
-  border: 1px solid rgba(233,69,96,0.2);
+  border: 1px solid rgba(233, 69, 96, 0.2);
   animation: fadeIn 0.3s ease;
 }
 
@@ -72,7 +94,9 @@
   margin-bottom: 24px;
 }
 
-.form-header h3 { font-size: 18px; }
+.form-header h3 {
+  font-size: clamp(15px, 2vw, 18px);
+}
 
 .close-btn {
   background: var(--card);
@@ -87,15 +111,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.close-btn:hover { color: var(--accent); border-color: var(--accent); }
+.close-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 
-.admin-form { display: flex; flex-direction: column; gap: 20px; }
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
+/* Grid del formulario: 2 col en tablet+, 1 col en móvil */
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
@@ -110,7 +143,10 @@
   padding-right: 36px;
 }
 
-.form-select option { background: #1a1a3e; color: #f0f0ff; }
+.form-select option {
+  background: #1a1a3e;
+  color: #f0f0ff;
+}
 
 .form-textarea {
   resize: vertical;
@@ -137,15 +173,17 @@
   height: 18px;
   accent-color: var(--accent);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
-/* Image preview */
+/* Preview de imagen */
 .img-preview {
   display: flex;
   align-items: center;
   gap: 16px;
   font-size: 13px;
   color: var(--text2);
+  flex-wrap: wrap;
 }
 
 .img-preview img {
@@ -154,34 +192,44 @@
   object-fit: cover;
   border-radius: 10px;
   border: 2px solid var(--card-border);
+  flex-shrink: 0;
 }
 
-/* Form actions */
+/* Acciones del formulario */
 .form-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-/* Toolbar */
+
+/* ============================================================
+   TOOLBAR
+   ============================================================ */
 .admin-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
-/* Table */
+
+/* ============================================================
+   TABLA — desktop (scroll horizontal en pantallas chicas)
+   ============================================================ */
 .admin-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;   /* scroll suave en iOS */
   border-radius: var(--radius);
   border: 1px solid var(--card-border);
 }
 
 .admin-table {
   width: 100%;
+  min-width: 600px;                    /* evita que la tabla se comprima demasiado */
   border-collapse: collapse;
   font-size: 14px;
 }
@@ -192,7 +240,7 @@
 }
 
 .admin-table th {
-  padding: 14px 16px;
+  padding: clamp(10px, 1.5vw, 14px) 16px;
   text-align: left;
   font-family: 'Syne', sans-serif;
   font-size: 12px;
@@ -204,7 +252,7 @@
 }
 
 .admin-table td {
-  padding: 14px 16px;
+  padding: clamp(10px, 1.5vw, 14px) 16px;
   border-bottom: 1px solid var(--card-border);
   vertical-align: middle;
 }
@@ -226,11 +274,12 @@
 }
 
 .table-img {
-  width: 52px;
-  height: 52px;
+  width: clamp(40px, 5vw, 52px);
+  height: clamp(40px, 5vw, 52px);
   object-fit: cover;
   border-radius: 10px;
   border: 1px solid var(--card-border);
+  display: block;
 }
 
 .product-name-cell {
@@ -244,6 +293,10 @@
   display: block;
   font-size: 12px;
   color: var(--text2);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cat-tag {
@@ -266,13 +319,13 @@
   white-space: nowrap;
 }
 
-.stock-ok { background: rgba(37,211,102,0.1); color: #25D366; }
-.stock-low { background: rgba(245,166,35,0.1); color: #f5a623; }
-.stock-out { background: rgba(233,69,96,0.1); color: var(--accent); }
+.stock-ok  { background: rgba(37, 211, 102, 0.1); color: #25D366;         }
+.stock-low { background: rgba(245, 166, 35, 0.1);  color: #f5a623;         }
+.stock-out { background: rgba(233, 69, 96, 0.1);   color: var(--accent);   }
 
 .centered { text-align: center; }
 
-/* Action buttons */
+/* Botones de acción */
 .action-btns {
   display: flex;
   gap: 8px;
@@ -280,9 +333,9 @@
 }
 
 .btn-edit {
-  background: rgba(79,195,247,0.1);
+  background: rgba(79, 195, 247, 0.1);
   color: #4fc3f7;
-  border: 1px solid rgba(79,195,247,0.2);
+  border: 1px solid rgba(79, 195, 247, 0.2);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;
@@ -294,14 +347,14 @@
 }
 
 .btn-edit:hover {
-  background: rgba(79,195,247,0.2);
+  background: rgba(79, 195, 247, 0.2);
   border-color: #4fc3f7;
 }
 
 .btn-delete {
-  background: rgba(233,69,96,0.1);
+  background: rgba(233, 69, 96, 0.1);
   color: var(--accent);
-  border: 1px solid rgba(233,69,96,0.2);
+  border: 1px solid rgba(233, 69, 96, 0.2);
   padding: 6px 10px;
   border-radius: 8px;
   font-size: 14px;
@@ -310,23 +363,118 @@
 }
 
 .btn-delete:hover {
-  background: rgba(233,69,96,0.2);
+  background: rgba(233, 69, 96, 0.2);
   border-color: var(--accent);
 }
 
-.btn-delete:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-delete:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-/* Responsive */
+
+/* ============================================================
+   BREAKPOINTS RESPONSIVOS
+   ============================================================ */
+
+/* ── Tablets verticales y móviles (≤ 768px) ── */
 @media (max-width: 768px) {
-  .form-grid { grid-template-columns: 1fr; }
-  .full-width { grid-column: 1; }
+  /* Formulario a 1 columna */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 
+  .full-width,
+  .featured-check {
+    grid-column: 1;
+  }
+
+  /* Acciones del form en columna */
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Ocultar columna de imagen y stock en tabla */
   .admin-table th:nth-child(1),
-  .admin-table td:nth-child(1) { display: none; }
-
+  .admin-table td:nth-child(1),
   .admin-table th:nth-child(6),
-  .admin-table td:nth-child(6) { display: none; }
+  .admin-table td:nth-child(6) {
+    display: none;
+  }
 
-  .form-actions { flex-direction: column; }
-  .form-actions .btn { width: 100%; justify-content: center; }
+  /* Stats: máximo 2 por fila */
+  .admin-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Móviles pequeños (≤ 480px) ── */
+@media (max-width: 480px) {
+  /* Stats: 1 por fila */
+  .admin-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Header en columna */
+  .admin-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+  }
+
+  .admin-header-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* Toolbar en columna */
+  .admin-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Ocultar más columnas en tabla para que quepan las esenciales */
+  .admin-table th:nth-child(3),
+  .admin-table td:nth-child(3),
+  .admin-table th:nth-child(4),
+  .admin-table td:nth-child(4) {
+    display: none;
+  }
+
+  /* Botones de acción más compactos */
+  .btn-edit {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}
+
+/* ── Tablets horizontales (769px – 1024px) ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .admin-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Pantallas grandes (≥ 1440px) ── */
+@media (min-width: 1440px) {
+  .admin-page {
+    max-width: 1400px;
+    margin-inline: auto;
+  }
+
+  .product-desc-cell {
+    max-width: 300px;
+  }
 }

@@ -17,7 +17,7 @@ export default function ProductCard({ product }) {
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(p);
 
   return (
-    <Link to={`/products/${product._id}`} className="product-card card">
+    <Link to={`/products/${product.id}`} className="product-card card">
       <div className="product-img-wrap">
         <img src={product.image} alt={product.name} className="product-img" loading="lazy" />
         {product.featured && <span className="featured-tag">⭐ Destacado</span>}
