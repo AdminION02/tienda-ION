@@ -4,8 +4,8 @@
 .navbar {
   --nav-h:         64px;
   --nav-pad:       clamp(16px, 4vw, 32px);
-  --nav-bg:        rgb(65, 105, 225);
-  --nav-border:    rgba(229, 231, 235, 0.8);
+  --nav-bg:        rgba(10, 25, 47, 0.75); /* azul noche translúcido */
+  --nav-border:    rgba(255, 255, 255, 0.1);
   --drawer-w:      min(320px, 90vw);
   --drawer-speed:  0.3s;
 
@@ -16,12 +16,12 @@
   z-index: 1000;
 
   background: var(--nav-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--nav-border);
-  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
-}
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
+  border-bottom: 1px solid var(--nav-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
 
 /* ============================================================
    INNER — flex row
