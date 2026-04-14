@@ -4,13 +4,24 @@ import { getMyOrders } from '../api';
 import { useAuth } from '../context/AuthContext';
 import './Orders.css';
 
+// ── Soporta tanto claves en español (legacy) como en inglés (Supabase) ──
 const STATUS_LABELS = {
+  // Inglés — valores que guarda Supabase / panel admin
+  pending:   { label: '⏳ Pendiente',  color: '#f5a623' },
+  confirmed: { label: '✅ Confirmado', color: '#25D366' },
+  shipped:   { label: '🚚 Enviado',    color: '#4fc3f7' },
+  delivered: { label: '📦 Entregado',  color: '#81c784' },
+  cancelled: { label: '❌ Cancelado',  color: '#e94560' },
+
+  // Español — por compatibilidad con datos anteriores
   pendiente:  { label: '⏳ Pendiente',  color: '#f5a623' },
   confirmado: { label: '✅ Confirmado', color: '#25D366' },
   enviado:    { label: '🚚 Enviado',    color: '#4fc3f7' },
   entregado:  { label: '📦 Entregado',  color: '#81c784' },
   cancelado:  { label: '❌ Cancelado',  color: '#e94560' },
 };
+
+const DEFAULT_STATUS = { label: '⏳ Pendiente', color: '#f5a623' };
 
 const formatPrice = (p) =>
   new Intl.NumberFormat('es-CO', {
@@ -25,8 +36,15 @@ const formatDate = (d) => {
   } catch { return '—'; }
 };
 
-// Obtiene el ID sin importar si viene como _id o id
 const getId = (obj) => obj?._id ?? obj?.id ?? null;
+
+const parseField = (field) => {
+  if (!field) return field;
+  if (typeof field === 'string') {
+    try { return JSON.parse(field); } catch { return field; }
+  }
+  return field;
+};
 
 export default function Orders() {
   const [orders, setOrders]   = useState([]);
@@ -40,13 +58,12 @@ export default function Orders() {
 
     getMyOrders()
       .then(res => {
-        // Soporta: res.data (axios), res directamente, o wrappers { orders, data, pedidos }
         let data = res?.data ?? res ?? [];
         if (data && typeof data === 'object' && !Array.isArray(data)) {
           data = data.orders ?? data.data ?? data.pedidos ?? [];
         }
         const list = Array.isArray(data) ? data : [];
-        console.log(`[Orders] ${list.length} pedidos recibidos`, list[0]);
+        console.log(`[Orders] ${list.length} pedidos`, list[0]);
         setOrders(list);
       })
       .catch((err) => {
@@ -99,14 +116,15 @@ export default function Orders() {
           const orderId = getId(order);
           if (!order || !orderId) return null;
 
-          const status  = STATUS_LABELS[order.status] ?? STATUS_LABELS.pendiente;
-          const items   = Array.isArray(order.items) ? order.items : [];
+          // ← FIX: busca el status en inglés o español, con fallback seguro
+          const status  = STATUS_LABELS[order.status] ?? DEFAULT_STATUS;
+          const items   = Array.isArray(parseField(order.items)) ? parseField(order.items) : [];
           const total   = order.total ?? order.totalAmount ?? order.price ?? 0;
           const shortId = String(orderId).slice(-6).toUpperCase();
           const waNumber = process.env.REACT_APP_WHATSAPP_NUMBER || '573001234567';
 
           const itemsList = items
-            .map(i => `• ${i?.quantity ?? 1}x ${i?.name ?? i?.productName ?? 'Producto'} - $${(i?.price ?? i?.unitPrice ?? 0).toLocaleString('es-CO')}`)
+            .map(i => `• ${i?.quantity ?? 1}x ${i?.name ?? 'Producto'} - $${(i?.price ?? 0).toLocaleString('es-CO')}`)
             .join('\n');
 
           const waMessage =
@@ -116,22 +134,21 @@ export default function Orders() {
             `Hola, quisiera saber el estado de mi pedido.`;
 
           const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
+          const dateField = order.created_at ?? order.createdAt ?? order.date;
 
           return (
             <div key={orderId ?? idx} className="order-card card fade-in">
 
-              {/* Encabezado */}
               <div className="order-header">
                 <div className="order-header-left">
                   <span className="order-id">Pedido #{shortId}</span>
-                  <span className="order-date">{formatDate(order.createdAt ?? order.date)}</span>
+                  <span className="order-date">{formatDate(dateField)}</span>
                 </div>
                 <span className="order-status-badge" style={{ '--status-color': status.color }}>
                   {status.label}
                 </span>
               </div>
 
-              {/* Productos */}
               <div className="order-items">
                 {items.length === 0 ? (
                   <p className="order-item-empty">Sin productos registrados</p>
@@ -160,7 +177,6 @@ export default function Orders() {
                 )}
               </div>
 
-              {/* Footer */}
               <div className="order-footer">
                 <span className="order-total">
                   Total: <strong className="price">{formatPrice(total)}</strong>
