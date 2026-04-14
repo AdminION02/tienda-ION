@@ -2,12 +2,8 @@
    NAVBAR — Variables locales
    ============================================================ */
 .navbar {
-  --nav-h:         64px;
-  --nav-pad:       clamp(16px, 4vw, 32px);
-  --nav-bg:        rgba(10, 25, 47, 0.75); /* azul noche translúcido */
-  --nav-border:    rgba(255, 255, 255, 0.1);
-  --drawer-w:      min(320px, 90vw);
-  --drawer-speed:  0.3s;
+  --nav-h: 64px;
+  --nav-pad: clamp(16px, 4vw, 32px);
 
   position: fixed;
   top: 0;
@@ -15,12 +11,39 @@
   right: 0;
   z-index: 1000;
 
-  background: var(--nav-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  /* 🌊 Degradado azul (oscuro → claro → oscuro) */
+  background: linear-gradient(
+    270deg,
+    #0a192f,
+    #0f2a5a,
+    #1d4ed8,
+    #0f2a5a,
+    #0a192f
+  );
 
-  border-bottom: 1px solid var(--nav-border);
+  background-size: 400% 400%;
+
+  /* ✨ Animación suave */
+  animation: navbarFlow 10s ease infinite;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 🔄 Movimiento de izquierda a derecha */
+@keyframes navbarFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* ============================================================
