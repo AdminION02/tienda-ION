@@ -101,7 +101,7 @@
 
 .nav-link:hover,
 .nav-link.active {
-  color: var(--text, #111827);
+  color: var(--text, #ffffff);
   background: rgba(0, 0, 0, 0.04);
 }
 
@@ -167,7 +167,7 @@
 .user-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text, #111827);
+  color: var(--text, #ffffff);
   white-space: nowrap;
   /* ocultar en pantallas medianas para no saturar */
   max-width: 120px;
