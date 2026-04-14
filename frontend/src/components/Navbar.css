@@ -71,11 +71,11 @@
 }
 
 .navbar-logo-img {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
+  height: 40px;
+  width: 40px;
+  object-fit: cover; /* mejor para logos circulares */
+  border-radius: 50%; /* lo hace perfectamente redondo */
 }
-
 
 /* ============================================================
    LINKS — desktop
