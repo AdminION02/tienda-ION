@@ -10,6 +10,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
+  const [activeImg, setActiveImg] = useState(0);
   const { addItem } = useCart();
 
   useEffect(() => {
@@ -18,6 +19,9 @@ export default function ProductDetail() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Reiniciar carrusel al cargar nuevo producto
+  useEffect(() => { setActiveImg(0); }, [product]);
 
   const formatPrice = (p) =>
     new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(p);
@@ -28,15 +32,75 @@ export default function ProductDetail() {
   };
 
   if (loading) return <div className="loader"><div className="spinner" /></div>;
-  if (!product) return <div className="container" style={{ padding: '60px 24px', textAlign: 'center' }}>Producto no encontrado. <Link to="/products">Volver</Link></div>;
+  if (!product) return (
+    <div className="container" style={{ padding: '60px 24px', textAlign: 'center' }}>
+      Producto no encontrado. <Link to="/products">Volver</Link>
+    </div>
+  );
+
+  // Armar array solo con imágenes que existan
+  const images = [
+    product.image,
+    product.image2,
+    product.image3,
+    product.image4,
+    product.image5,
+  ].filter(Boolean);
+
+  const prev = () => setActiveImg(i => (i - 1 + images.length) % images.length);
+  const next = () => setActiveImg(i => (i + 1) % images.length);
 
   return (
     <div className="detail-page container">
       <div className="detail-grid">
-        <div className="detail-img-wrap">
-          <img src={product.image} alt={product.name} className="detail-img" />
-          {product.featured && <span className="featured-tag">⭐ Destacado</span>}
+
+        {/* ── Carrusel ── */}
+        <div className="detail-gallery">
+          <div className="carousel-wrap">
+            <img
+              src={images[activeImg]}
+              alt={`${product.name} - foto ${activeImg + 1}`}
+              className="carousel-main-img"
+            />
+            {product.featured && <span className="featured-tag">⭐ Destacado</span>}
+
+            {images.length > 1 && (
+              <>
+                <button className="carousel-btn prev" onClick={prev} aria-label="Anterior">&#8249;</button>
+                <button className="carousel-btn next" onClick={next} aria-label="Siguiente">&#8250;</button>
+
+                {/* Dots */}
+                <div className="carousel-dots">
+                  {images.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`carousel-dot ${i === activeImg ? 'active' : ''}`}
+                      onClick={() => setActiveImg(i)}
+                      aria-label={`Foto ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Miniaturas */}
+          {images.length > 1 && (
+            <div className="carousel-thumbs">
+              {images.map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt={`miniatura ${i + 1}`}
+                  className={`carousel-thumb ${i === activeImg ? 'active' : ''}`}
+                  onClick={() => setActiveImg(i)}
+                />
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* ── Info ── */}
         <div className="detail-info">
           <span className="product-category">{product.category}</span>
           <h1>{product.name}</h1>
@@ -66,6 +130,7 @@ export default function ProductDetail() {
             </Link>
           </div>
         </div>
+
       </div>
     </div>
   );
