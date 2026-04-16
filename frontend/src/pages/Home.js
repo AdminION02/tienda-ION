@@ -34,7 +34,7 @@ export default function Home() {
               Ver Productos 🛍️
             </Link>
             <a
-              href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573001234567'}`}
+              href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573235206981'}`}
               target="_blank"
               rel="noreferrer"
               className="btn btn-whatsapp hero-btn"
@@ -102,7 +102,7 @@ export default function Home() {
           <h2>¿Tienes alguna pregunta?</h2>
           <p>Escríbenos directamente por WhatsApp y te respondemos al instante</p>
           <a
-            href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573001234567'}?text=Hola! Quiero información sobre sus productos.`}
+            href={`https://wa.me/${process.env.REACT_APP_WHATSAPP_NUMBER || '573235206981'}?text=Hola! Quiero información sobre sus productos.`}
             target="_blank"
             rel="noreferrer"
             className="btn btn-whatsapp"
