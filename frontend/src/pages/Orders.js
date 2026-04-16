@@ -121,7 +121,7 @@ export default function Orders() {
           const items   = Array.isArray(parseField(order.items)) ? parseField(order.items) : [];
           const total   = order.total ?? order.totalAmount ?? order.price ?? 0;
           const shortId = String(orderId).slice(-6).toUpperCase();
-          const waNumber = process.env.REACT_APP_WHATSAPP_NUMBER || '573235206981';
+          const waNumber = process.env.REACT_APP_WHATSAPP_NUMBER || '573202262501';
 
           const itemsList = items
             .map(i => `• ${i?.quantity ?? 1}x ${i?.name ?? 'Producto'} - $${(i?.price ?? 0).toLocaleString('es-CO')}`)

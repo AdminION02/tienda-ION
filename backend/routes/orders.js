@@ -23,7 +23,7 @@ router.post('/', protect, async (req, res) => {
 
     const order = result.rows[0];
 
-    const whatsappNumber = process.env.WHATSAPP_NUMBER || '573001234567';
+    const whatsappNumber = process.env.WHATSAPP_NUMBER || '573202262501';
     const whatsappLink = generateWhatsAppLink(whatsappNumber, order);
 
     res.status(201).json({ order, whatsappLink });
