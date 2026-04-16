@@ -14,6 +14,10 @@ const EMPTY_FORM = {
   price:       '',
   category:    '',
   image:       '',
+  image2:      '',
+  image3:      '',
+  image4:      '',
+  image5:      '',
   stock:       '',
   featured:    false,
 };
@@ -23,12 +27,124 @@ const CATEGORIES = [
   'Cables', 'Bocinas', 'Smartwatch', 'Dispositivo Móvil', 'Línea Blanca',
 ];
 
-// ─── Componente ──────────────────────────────────────────────────────────────
+// ─── Sub-componente: campo de imagen individual ───────────────────────────────
+
+function ImageField({ label, fieldName, isMain = false, form, setForm, fileRef, onFileChange }) {
+  const [mode, setMode] = useState('url');
+
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    if (newMode === 'url') {
+      // limpiar vista previa del archivo
+      onFileChange(fieldName, null);
+    } else {
+      setForm(f => ({ ...f, [fieldName]: '' }));
+    }
+  };
+
+  const handleUrlChange = (e) => {
+    setForm(f => ({ ...f, [fieldName]: e.target.value }));
+  };
+
+  const handleFileSelect = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Solo se permiten imágenes'); return; }
+    if (file.size > 5 * 1024 * 1024)    { toast.error('La imagen no puede superar los 5 MB'); return; }
+    onFileChange(fieldName, file);
+  };
+
+  const preview = mode === 'url' ? form[fieldName] : form[`__preview_${fieldName}`];
+
+  return (
+    <div className="form-group full-width image-field-block">
+      <label>
+        {isMain ? '🖼️ Imagen principal *' : `📷 ${label}`}
+      </label>
+
+      <div className="image-mode-tabs">
+        <button type="button"
+          className={`image-tab ${mode === 'url' ? 'active' : ''}`}
+          onClick={() => handleModeChange('url')}>
+          🔗 URL
+        </button>
+        <button type="button"
+          className={`image-tab ${mode === 'file' ? 'active' : ''}`}
+          onClick={() => handleModeChange('file')}>
+          📁 Subir archivo
+        </button>
+      </div>
+
+      {mode === 'url' && (
+        <>
+          <input
+            name={fieldName}
+            type="url"
+            className="form-input"
+            placeholder="https://..."
+            value={form[fieldName] || ''}
+            onChange={handleUrlChange}
+          />
+          {isMain && (
+            <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
+              💡 Sube tu imagen a{' '}
+              <a href="https://imgbb.com" target="_blank" rel="noreferrer">imgbb.com</a> o{' '}
+              <a href="https://imgur.com" target="_blank" rel="noreferrer">imgur.com</a> y pega el enlace aquí
+            </small>
+          )}
+        </>
+      )}
+
+      {mode === 'file' && (
+        <>
+          <div
+            className="file-drop-zone"
+            onClick={() => fileRef.current?.click()}
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => {
+              e.preventDefault();
+              handleFileSelect(e.dataTransfer.files[0]);
+            }}>
+            {form[`__file_${fieldName}`]
+              ? <span>📎 {form[`__file_${fieldName}`].name}</span>
+              : <span>Arrastra una imagen aquí o <strong>haz clic para seleccionar</strong></span>
+            }
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={e => handleFileSelect(e.target.files[0])}
+          />
+          <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
+            Formatos: JPG, PNG, WEBP · Máximo 5 MB
+          </small>
+        </>
+      )}
+
+      {preview && (
+        <div className="img-preview-inline">
+          <img src={preview} alt={`preview ${label}`} onError={e => { e.target.style.display = 'none'; }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 
 export default function Admin() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const fileRef  = useRef(null);
+
+  // refs para los 5 inputs de archivo
+  const fileRefs = {
+    image:  useRef(null),
+    image2: useRef(null),
+    image3: useRef(null),
+    image4: useRef(null),
+    image5: useRef(null),
+  };
 
   // Productos
   const [products, setProducts] = useState([]);
@@ -42,12 +158,7 @@ export default function Admin() {
   const [saving, setSaving]     = useState(false);
   const [deleting, setDeleting] = useState(null);
 
-  // Imagen
-  const [imageMode, setImageMode]       = useState('url');
-  const [imageFile, setImageFile]       = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
-
-  // ─── Auth guard ────────────────────────────────────────────────────────────
+  // ─── Auth guard ──────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -57,7 +168,7 @@ export default function Admin() {
     }
   }, [user, navigate]);
 
-  // ─── Carga de productos ────────────────────────────────────────────────────
+  // ─── Carga de productos ───────────────────────────────────────────────────────
 
   const loadProducts = () => {
     setLoading(true);
@@ -69,35 +180,47 @@ export default function Admin() {
 
   useEffect(() => { loadProducts(); }, []);
 
-  // ─── Handlers de imagen ────────────────────────────────────────────────────
+  // ─── Handler de archivo por campo ─────────────────────────────────────────────
 
-  const handleFileChange = e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { toast.error('Solo se permiten imágenes'); return; }
-    if (file.size > 5 * 1024 * 1024)    { toast.error('La imagen no puede superar los 5 MB'); return; }
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+  const handleFileChange = (fieldName, file) => {
+    if (!file) {
+      setForm(f => ({ ...f, [`__file_${fieldName}`]: null, [`__preview_${fieldName}`]: '' }));
+      return;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setForm(f => ({
+      ...f,
+      [`__file_${fieldName}`]:    file,
+      [`__preview_${fieldName}`]: previewUrl,
+    }));
   };
 
-  const resetImageState = () => {
-    setImageMode('url');
-    setImageFile(null);
-    setImagePreview('');
-    if (fileRef.current) fileRef.current.value = '';
+  // ─── Subir un archivo al servidor ─────────────────────────────────────────────
+
+  const uploadFile = async (file) => {
+    const uploadData = new FormData();
+    uploadData.append('image', file);
+    const res = await API.post('/api/upload', uploadData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data.url;
   };
 
-  // ─── Handlers del formulario ───────────────────────────────────────────────
+  // ─── Helpers de formulario ─────────────────────────────────────────────────────
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const openCreate = () => {
+  const resetForm = () => {
     setEditing(null);
     setForm(EMPTY_FORM);
-    resetImageState();
+    Object.values(fileRefs).forEach(r => { if (r.current) r.current.value = ''; });
+  };
+
+  const openCreate = () => {
+    resetForm();
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -110,23 +233,24 @@ export default function Admin() {
       price:       product.price       || '',
       category:    product.category    || '',
       image:       product.image       || '',
+      image2:      product.image2      || '',
+      image3:      product.image3      || '',
+      image4:      product.image4      || '',
+      image5:      product.image5      || '',
       stock:       product.stock       || '',
       featured:    product.featured    || false,
     });
-    resetImageState();
-    if (product.image) setImagePreview(product.image);
+    Object.values(fileRefs).forEach(r => { if (r.current) r.current.value = ''; });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const closeForm = () => {
     setShowForm(false);
-    setEditing(null);
-    setForm(EMPTY_FORM);
-    resetImageState();
+    resetForm();
   };
 
-  // ─── Submit ────────────────────────────────────────────────────────────────
+  // ─── Submit ────────────────────────────────────────────────────────────────────
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -136,24 +260,27 @@ export default function Admin() {
       return;
     }
 
-    const tieneUrl  = imageMode === 'url'  && form.image.trim();
-    const tieneFile = imageMode === 'file' && imageFile;
-    if (!tieneUrl && !tieneFile) {
-      toast.error('Agrega una imagen (archivo o URL)');
+    // La imagen principal es obligatoria
+    const mainHasUrl  = form.image?.trim();
+    const mainHasFile = form.__file_image;
+    if (!mainHasUrl && !mainHasFile) {
+      toast.error('La imagen principal es obligatoria');
       return;
     }
 
     setSaving(true);
     try {
-      let imageUrl = form.image;
+      // Resolver URLs para los 5 campos de imagen
+      const imageFields = ['image', 'image2', 'image3', 'image4', 'image5'];
+      const resolvedUrls = {};
 
-      if (imageMode === 'file' && imageFile) {
-        const uploadData = new FormData();
-        uploadData.append('image', imageFile);
-        const uploadRes = await API.post('/api/upload', uploadData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        imageUrl = uploadRes.data.url;
+      for (const field of imageFields) {
+        const file = form[`__file_${field}`];
+        if (file) {
+          resolvedUrls[field] = await uploadFile(file);
+        } else {
+          resolvedUrls[field] = form[field] || '';
+        }
       }
 
       const payload = {
@@ -161,7 +288,11 @@ export default function Admin() {
         description: form.description,
         price:       Number(form.price),
         category:    form.category,
-        image:       imageUrl,
+        image:       resolvedUrls.image,
+        image2:      resolvedUrls.image2,
+        image3:      resolvedUrls.image3,
+        image4:      resolvedUrls.image4,
+        image5:      resolvedUrls.image5,
         stock:       Number(form.stock) || 0,
         featured:    form.featured,
       };
@@ -179,7 +310,7 @@ export default function Admin() {
     }
   };
 
-  // ─── Eliminar ──────────────────────────────────────────────────────────────
+  // ─── Eliminar ──────────────────────────────────────────────────────────────────
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`¿Eliminar "${name}"? Esta acción no se puede deshacer.`)) return;
@@ -195,7 +326,7 @@ export default function Admin() {
     }
   };
 
-  // ─── Helpers ───────────────────────────────────────────────────────────────
+  // ─── Helpers UI ───────────────────────────────────────────────────────────────
 
   const formatPrice = p =>
     new Intl.NumberFormat('es-CO', {
@@ -207,11 +338,9 @@ export default function Admin() {
     (p.category || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const previewSrc = imageMode === 'file' ? imagePreview : form.image || imagePreview;
-
   if (!user || user.role !== 'admin') return null;
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <div className="admin-page container">
@@ -275,6 +404,7 @@ export default function Admin() {
           <form onSubmit={handleSubmit} className="admin-form">
             <div className="form-grid">
 
+              {/* Datos básicos */}
               <div className="form-group">
                 <label>Nombre del producto *</label>
                 <input name="name" className="form-input" placeholder="Ej: Audífonos Bluetooth"
@@ -302,58 +432,36 @@ export default function Admin() {
                   value={form.stock} onChange={handleChange} min="0" />
               </div>
 
-              {/* Imagen */}
-              <div className="form-group full-width">
-                <label>Imagen del producto</label>
-                <div className="image-mode-tabs">
-                  <button type="button"
-                    className={`image-tab ${imageMode === 'url' ? 'active' : ''}`}
-                    onClick={() => { setImageMode('url'); setImageFile(null); setImagePreview(''); }}>
-                    🔗 URL
-                  </button>
-                  <button type="button"
-                    className={`image-tab ${imageMode === 'file' ? 'active' : ''}`}
-                    onClick={() => { setImageMode('file'); setForm(f => ({ ...f, image: '' })); }}>
-                    📁 Subir archivo
-                  </button>
+              {/* ── Bloque de imágenes ── */}
+              <div className="full-width">
+                <div className="images-section-title">
+                  <span>🖼️ Imágenes del producto</span>
+                  <small>La imagen principal es obligatoria · Las adicionales son opcionales</small>
                 </div>
 
-                {imageMode === 'url' && (
-                  <>
-                    <input name="image" type="url" className="form-input" placeholder="https://..."
-                      value={form.image} onChange={handleChange} />
-                    <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
-                      💡 Sube tu imagen a{' '}
-                      <a href="https://imgbb.com" target="_blank" rel="noreferrer">imgbb.com</a> o{' '}
-                      <a href="https://imgur.com" target="_blank" rel="noreferrer">imgur.com</a> y pega el enlace aquí
-                    </small>
-                  </>
-                )}
-
-                {imageMode === 'file' && (
-                  <>
-                    <div className="file-drop-zone"
-                      onClick={() => fileRef.current?.click()}
-                      onDragOver={e => e.preventDefault()}
-                      onDrop={e => {
-                        e.preventDefault();
-                        const file = e.dataTransfer.files[0];
-                        if (file) handleFileChange({ target: { files: [file] } });
-                      }}>
-                      {imageFile
-                        ? <span>📎 {imageFile.name}</span>
-                        : <span>Arrastra una imagen aquí o <strong>haz clic para seleccionar</strong></span>
-                      }
-                    </div>
-                    <input ref={fileRef} type="file" accept="image/*"
-                      style={{ display: 'none' }} onChange={handleFileChange} />
-                    <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.78rem', marginTop: 4, display: 'block' }}>
-                      Formatos: JPG, PNG, WEBP · Máximo 5 MB
-                    </small>
-                  </>
-                )}
+                <div className="images-grid">
+                  {[
+                    { field: 'image',  label: 'Imagen principal', isMain: true  },
+                    { field: 'image2', label: 'Imagen 2',         isMain: false },
+                    { field: 'image3', label: 'Imagen 3',         isMain: false },
+                    { field: 'image4', label: 'Imagen 4',         isMain: false },
+                    { field: 'image5', label: 'Imagen 5',         isMain: false },
+                  ].map(({ field, label, isMain }) => (
+                    <ImageField
+                      key={field}
+                      label={label}
+                      fieldName={field}
+                      isMain={isMain}
+                      form={form}
+                      setForm={setForm}
+                      fileRef={fileRefs[field]}
+                      onFileChange={handleFileChange}
+                    />
+                  ))}
+                </div>
               </div>
 
+              {/* Descripción */}
               <div className="form-group full-width">
                 <label>Descripción</label>
                 <textarea name="description" className="form-input form-textarea"
@@ -361,6 +469,7 @@ export default function Admin() {
                   onChange={handleChange} rows={3} />
               </div>
 
+              {/* Destacado */}
               <div className="form-group featured-check full-width">
                 <label className="checkbox-label">
                   <input type="checkbox" name="featured" checked={form.featured} onChange={handleChange} />
@@ -368,14 +477,8 @@ export default function Admin() {
                   ⭐ Marcar como producto destacado (aparece en el inicio)
                 </label>
               </div>
-            </div>
 
-            {previewSrc && (
-              <div className="img-preview">
-                <span>Vista previa:</span>
-                <img src={previewSrc} alt="preview" onError={e => { e.target.style.display = 'none'; }} />
-              </div>
-            )}
+            </div>
 
             <div className="form-actions">
               <button type="button" className="btn btn-secondary" onClick={closeForm}>Cancelar</button>
@@ -415,7 +518,7 @@ export default function Admin() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Imagen</th>
+                  <th>Imágenes</th>
                   <th>Producto</th>
                   <th>Categoría</th>
                   <th>Precio</th>
@@ -428,8 +531,19 @@ export default function Admin() {
                 {filtered.map(product => (
                   <tr key={product.id} className={product.stock === 0 ? 'out-of-stock' : ''}>
                     <td>
-                      <img src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
-                        alt={product.name} className="table-img" />
+                      {/* Miniatura principal + contador de fotos extras */}
+                      <div className="table-img-wrap">
+                        <img
+                          src={product.image || 'https://placehold.co/60x60?text=Sin+foto'}
+                          alt={product.name}
+                          className="table-img"
+                        />
+                        {[product.image2, product.image3, product.image4, product.image5].filter(Boolean).length > 0 && (
+                          <span className="extra-imgs-badge">
+                            +{[product.image2, product.image3, product.image4, product.image5].filter(Boolean).length}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <span className="product-name-cell">{product.name}</span>
@@ -473,13 +587,23 @@ export default function Admin() {
             {filtered.map(product => (
               <div key={product.id} className={`mobile-card card ${product.stock === 0 ? 'out-of-stock' : ''}`}>
 
-                {/* Top: imagen + nombre */}
                 <div className="mobile-card-top">
-                  <img
-                    src={product.image || 'https://placehold.co/56x56?text=?'}
-                    alt={product.name}
-                    className="mobile-card-img"
-                  />
+                  {/* Miniaturas de todas las imágenes disponibles */}
+                  <div className="mobile-imgs-row">
+                    {[product.image, product.image2, product.image3, product.image4, product.image5]
+                      .filter(Boolean)
+                      .slice(0, 3)
+                      .map((src, i) => (
+                        <img key={i} src={src} alt={`foto ${i + 1}`}
+                          className={i === 0 ? 'mobile-card-img' : 'mobile-card-img-small'} />
+                      ))
+                    }
+                    {[product.image2, product.image3, product.image4, product.image5].filter(Boolean).length > 2 && (
+                      <span className="mobile-more-imgs">
+                        +{[product.image2, product.image3, product.image4, product.image5].filter(Boolean).length - 2} más
+                      </span>
+                    )}
+                  </div>
                   <div className="mobile-card-info">
                     <div className="mobile-card-name">{product.name}</div>
                     <div className="mobile-card-cat">{product.category}</div>
@@ -487,7 +611,6 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* Body: precio + stock */}
                 <div className="mobile-card-body">
                   <div className="mobile-card-field">
                     <span>Precio</span>
@@ -507,14 +630,12 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* Descripción */}
                 {product.description && (
                   <p className="mobile-card-desc">
                     {product.description.slice(0, 80)}{product.description.length > 80 ? '...' : ''}
                   </p>
                 )}
 
-                {/* Acciones */}
                 <div className="mobile-card-actions">
                   <button className="btn-edit" style={{ flex: 1, textAlign: 'center' }}
                     onClick={() => openEdit(product)}>
