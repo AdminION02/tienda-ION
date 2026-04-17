@@ -21,7 +21,6 @@ const PERIOD_OPTIONS = [
   { value: 'all',   label: 'Todos' },
 ];
 
-// ── Obtiene el ID sin importar si el backend usa _id o id ──
 const getId = (obj) => obj?._id ?? obj?.id ?? null;
 
 function getStatusInfo(status) {
@@ -55,7 +54,6 @@ function isInPeriod(dateStr, period) {
   return date >= start;
 }
 
-// Parsea items/customer_info si vienen como string JSON
 const parseField = (field) => {
   if (!field) return field;
   if (typeof field === 'string') {
@@ -64,17 +62,56 @@ const parseField = (field) => {
   return field;
 };
 
+// ── Modal de confirmación de eliminación ──
+function DeleteModal({ order, onConfirm, onCancel, isDeleting }) {
+  const info    = parseField(order?.customer_info) || {};
+  const orderId = getId(order);
+  const label   = info.name || order?.user_name || 'Cliente';
+
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-box card" onClick={e => e.stopPropagation()}>
+        <div className="modal-icon">🗑️</div>
+        <h3 className="modal-title">¿Eliminar pedido?</h3>
+        <p className="modal-body">
+          Vas a eliminar el pedido{' '}
+          <strong>#{String(orderId ?? '').slice(-6).toUpperCase()}</strong> de{' '}
+          <strong>{label}</strong>. Esta acción no se puede deshacer.
+        </p>
+        <div className="modal-actions">
+          <button
+            className="btn btn-secondary"
+            onClick={onCancel}
+            disabled={isDeleting}
+          >
+            Cancelar
+          </button>
+          <button
+            className="btn btn-danger"
+            onClick={onConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? <span className="btn-spinner" /> : '🗑️ Eliminar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OrdersUpdate() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [orders,       setOrders]       = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [updating,     setUpdating]     = useState(null);   // id del pedido que se está actualizando
-  const [expanded,     setExpanded]     = useState(null);
-  const [period,       setPeriod]       = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [search,       setSearch]       = useState('');
+  const [orders,        setOrders]        = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [updating,      setUpdating]      = useState(null);
+  const [deleting,      setDeleting]      = useState(null);   // id del pedido que se está eliminando
+  const [deleteTarget,  setDeleteTarget]  = useState(null);   // pedido seleccionado para eliminar (objeto completo)
+  const [expanded,      setExpanded]      = useState(null);
+  const [period,        setPeriod]        = useState('all');
+  const [statusFilter,  setStatusFilter]  = useState('all');
+  const [search,        setSearch]        = useState('');
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -100,26 +137,40 @@ export default function OrdersUpdate() {
 
   useEffect(() => { loadOrders(); }, [loadOrders]);
 
-  // ── FIX PRINCIPAL: comparar con getId() en lugar de o.id directamente ──
+  // ── Actualizar estado ──
   const handleStatusChange = async (orderId, newStatus) => {
     setUpdating(orderId);
     try {
       await API.put(`/api/orders/${orderId}/status`, { status: newStatus });
-
       setOrders(prev =>
         prev.map(o =>
-          getId(o) === orderId           // ← antes: o.id === orderId (fallaba con _id)
-            ? { ...o, status: newStatus }
-            : o
+          getId(o) === orderId ? { ...o, status: newStatus } : o
         )
       );
-
       toast.success('Estado actualizado');
     } catch (err) {
       console.error('[OrdersUpdate] Error al actualizar:', err);
       toast.error('Error al actualizar estado');
     } finally {
       setUpdating(null);
+    }
+  };
+
+  // ── Eliminar pedido ──
+  const handleDeleteConfirm = async () => {
+    const orderId = getId(deleteTarget);
+    setDeleting(orderId);
+    try {
+      await API.delete(`/api/orders/${orderId}`);
+      setOrders(prev => prev.filter(o => getId(o) !== orderId));
+      toast.success('Pedido eliminado');
+      setDeleteTarget(null);
+      if (expanded === orderId) setExpanded(null);
+    } catch (err) {
+      console.error('[OrdersUpdate] Error al eliminar:', err);
+      toast.error('Error al eliminar el pedido');
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -145,6 +196,16 @@ export default function OrdersUpdate() {
 
   return (
     <div className="orders-page container">
+
+      {/* Modal de confirmación */}
+      {deleteTarget && (
+        <DeleteModal
+          order={deleteTarget}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+          isDeleting={!!deleting}
+        />
+      )}
 
       {/* Encabezado */}
       <div className="orders-header">
@@ -237,18 +298,19 @@ export default function OrdersUpdate() {
       ) : (
         <div className="orders-list">
           {filtered.map(order => {
-            const orderId  = getId(order);
-            const info     = parseField(order.customer_info) || {};
-            const items    = Array.isArray(parseField(order.items)) ? parseField(order.items) : [];
-            const status   = getStatusInfo(order.status);
-            const isOpen   = expanded === orderId;
+            const orderId    = getId(order);
+            const info       = parseField(order.customer_info) || {};
+            const items      = Array.isArray(parseField(order.items)) ? parseField(order.items) : [];
+            const status     = getStatusInfo(order.status);
+            const isOpen     = expanded === orderId;
             const isUpdating = updating === orderId;
+            const isDeleting = deleting === orderId;
             const dateField  = order.created_at ?? order.createdAt ?? order.date;
 
             return (
               <div key={orderId} className={`order-card card ${order.status}`}>
 
-                {/* Fila resumen (clickeable para expandir) */}
+                {/* Fila resumen */}
                 <div className="order-card-header" onClick={() => setExpanded(isOpen ? null : orderId)}>
                   <div className="order-id-col">
                     <span className="order-id">#{String(orderId ?? '').slice(-6).toUpperCase()}</span>
@@ -269,6 +331,19 @@ export default function OrdersUpdate() {
                       {status.emoji} {status.label}
                     </span>
                   </div>
+
+                  {/* Botón eliminar en la fila — detiene la propagación para no expandir */}
+                  <div className="order-actions-col" onClick={e => e.stopPropagation()}>
+                    <button
+                      className="btn-delete-order"
+                      title="Eliminar pedido"
+                      disabled={isDeleting || isUpdating}
+                      onClick={() => setDeleteTarget(order)}
+                    >
+                      {isDeleting ? <span className="btn-spinner" /> : '🗑️'}
+                    </button>
+                  </div>
+
                   <div className="order-expand-col">
                     <span className="expand-icon">{isOpen ? '▲' : '▼'}</span>
                   </div>
@@ -337,8 +412,20 @@ export default function OrdersUpdate() {
                             ))}
                           </div>
                         </div>
-                      </div>
 
+                        {/* Botón eliminar también en el panel expandido */}
+                        <div className="order-delete-section">
+                          <h4>⚠️ Zona de peligro</h4>
+                          <button
+                            className="btn btn-danger btn-delete-full"
+                            onClick={() => setDeleteTarget(order)}
+                            disabled={isDeleting || isUpdating}
+                          >
+                            {isDeleting ? <span className="btn-spinner" /> : '🗑️ Eliminar pedido'}
+                          </button>
+                        </div>
+
+                      </div>
                     </div>
                   </div>
                 )}
