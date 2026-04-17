@@ -73,6 +73,21 @@ router.put('/:id/status', protect, adminOnly, async (req, res) => {
     res.status(500).json({ message: 'Error al actualizar orden', error: error.message });
   }
 });
+// DELETE /api/orders/:id (admin)
+router.delete('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM orders WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Orden no encontrada' });
+    }
+    res.json({ message: 'Orden eliminada', order: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar orden', error: error.message });
+  }
+});
 
 // Función para generar enlace WhatsApp
 function generateWhatsAppLink(number, order) {
